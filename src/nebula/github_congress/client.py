@@ -4,12 +4,11 @@ Wraps calls to the `unitedstates/congress-legislators` repository,
 retrieving current and historical member and committee records in YAML format.
 """
 
-from datetime import datetime
 from typing import Any
 
-import typer
 from httpx import Response
 
+from nebula.core.transport import parse_http_date
 from nebula.schemas import BaseClient
 
 from .schemas import (
@@ -55,7 +54,6 @@ class GitHubCongressClient(BaseClient):
             Structured response containing current member metadata.
         """
         async with self._client as client:
-            typer.echo("Fetching current member data from GitHub Congress...")
             response: Response = await self._perform_request(
                 client, "GET", "/legislators-current.yaml", **kwargs
             )
@@ -63,13 +61,8 @@ class GitHubCongressClient(BaseClient):
                 text=response.text,
                 encoding=response.encoding,
                 content_type=response.headers.get("Content-Type"),
-                last_modified=(
-                    datetime.strptime(
-                        modified,
-                        "%a, %d %b %Y %H:%M:%S %Z",
-                    )
-                    if (modified := response.headers.get("Last-Modified"))
-                    else None
+                last_modified=parse_http_date(
+                    response.headers.get("Last-Modified")
                 ),
                 content_encoding=response.headers.get("Content-Encoding"),
                 content_length=response.headers.get("Content-Length"),
@@ -95,9 +88,6 @@ class GitHubCongressClient(BaseClient):
             Structured response for current committee metadata.
         """
         async with self._client as client:
-            typer.echo(
-                "Fetching current committee data from GitHub Congress..."
-            )
             response: Response = await self._perform_request(
                 client, "GET", "/committees-current.yaml", **kwargs
             )
@@ -105,13 +95,8 @@ class GitHubCongressClient(BaseClient):
                 text=response.text,
                 encoding=response.encoding,
                 content_type=response.headers.get("Content-Type"),
-                last_modified=(
-                    datetime.strptime(
-                        modified,
-                        "%a, %d %b %Y %H:%M:%S %Z",
-                    )
-                    if (modified := response.headers.get("Last-Modified"))
-                    else None
+                last_modified=parse_http_date(
+                    response.headers.get("Last-Modified")
                 ),
                 content_encoding=response.headers.get("Content-Encoding"),
                 content_length=response.headers.get("Content-Length"),
@@ -140,9 +125,6 @@ class GitHubCongressClient(BaseClient):
             Parsed response model filtered by the `year` argument.
         """
         async with self._client as client:
-            typer.echo(
-                "Fetching historical member data from GitHub Congress..."
-            )
             response: Response = await self._perform_request(
                 client, "GET", "/legislators-historical.yaml", **kwargs
             )
@@ -150,13 +132,8 @@ class GitHubCongressClient(BaseClient):
                 text=response.text,
                 encoding=response.encoding,
                 content_type=response.headers.get("Content-Type"),
-                last_modified=(
-                    datetime.strptime(
-                        modified,
-                        "%a, %d %b %Y %H:%M:%S %Z",
-                    )
-                    if (modified := response.headers.get("Last-Modified"))
-                    else None
+                last_modified=parse_http_date(
+                    response.headers.get("Last-Modified")
                 ),
                 content_encoding=response.headers.get("Content-Encoding"),
                 content_length=response.headers.get("Content-Length"),

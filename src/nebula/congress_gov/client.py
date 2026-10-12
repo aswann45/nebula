@@ -8,19 +8,19 @@ typed models.
 import functools
 import json
 from collections.abc import Mapping, Sequence
-from datetime import datetime
 from typing import Any
 
 import aiometer
-import typer
 from httpx import AsyncClient, Response
 
-from nebula.settings import settings
 from nebula.congress_gov.member_model import Member
 from nebula.congress_gov.schemas import (
     CongressGovMemberResponse,
 )
+from nebula.core.exceptions import ConfigurationError, ParsingError
+from nebula.core.transport import parse_http_date
 from nebula.schemas import BaseClient
+from nebula.settings import settings
 
 
 class CongressGovClient(BaseClient):
@@ -44,7 +44,7 @@ class CongressGovClient(BaseClient):
     BASE_URL = f"https://api.congress.gov/{API_VERSION}"
     API_KEY = settings.congress_gov_api_key
 
-    def __init__(self, **kwargs: Any | None):
+    def __init__(self, **kwargs: Any):
         """Initialize the Congress.gov API client.
 
         Parameters
@@ -54,34 +54,34 @@ class CongressGovClient(BaseClient):
 
         Raises
         ------
-        ValueError
+        ConfigurationError
             If `API_KEY` is missing or placeholder value is used.
         """
-        if "API_KEY" in kwargs:
-            self.API_KEY = str(kwargs["API_KEY"])
-        if self.API_KEY == "changethis":
-            raise ValueError(
+        key = kwargs.get("API_KEY", self.API_KEY)
+        if not key or key == "changethis":
+            raise ConfigurationError(
                 "API key not found. Did you set it in the app settings?"
             )
+        kwargs["API_KEY"] = str(key)
         super().__init__(**kwargs)
 
     async def get_bill_actions(
         self, **kwargs: Any | None
     ) -> None:  # -> CongressGovResponse:
         """Fetch actions taken on a bill. [Placeholder]."""
-        pass
+        raise NotImplementedError("Bill actions are not implemented")
 
     async def get_bill_amendments(
         self, **kwargs: Any | None
     ) -> None:  # -> CongressGovResponse:
         """Fetch amendments related to a bill. [Placeholder]."""
-        pass
+        raise NotImplementedError("Bill amendments are not implemented")
 
     async def get_amendment_actions(
         self, **kwargs: Any | None
     ) -> None:  # -> CongressGovResponse:
         """Fetch actions taken on a specific amendment. [Placeholder]."""
-        pass
+        raise NotImplementedError("Amendment actions are not implemented")
 
     async def _get_single_member_data(
         self, client: AsyncClient, bioguide_id: str, **kwargs: Any | None
@@ -113,13 +113,8 @@ class CongressGovClient(BaseClient):
                 text=response.text,
                 encoding=response.encoding,
                 content_type=response.headers.get("Content-Type"),
-                last_modified=(
-                    datetime.strptime(
-                        modified,
-                        "%a, %d %b %Y %H:%M:%S %Z",
-                    )
-                    if (modified := response.headers.get("Last-Modified"))
-                    else None
+                last_modified=parse_http_date(
+                    response.headers.get("Last-Modified")
                 ),
                 content_encoding=response.headers.get("Content-Encoding"),
                 content_length=response.headers.get("Content-Length"),
@@ -127,9 +122,8 @@ class CongressGovClient(BaseClient):
                 response_json=response.json(),
             )
         except json.decoder.JSONDecodeError as je:
-            raise RuntimeError(
-                f"JSON decode failed for the following request:\n"
-                f"bioguide_id: {bioguide_id}; api_key: {self.API_KEY}"
+            raise ParsingError(
+                f"Congress.gov returned invalid JSON for member {bioguide_id}"
             ) from je
 
     async def get_member_data(
@@ -150,7 +144,6 @@ class CongressGovClient(BaseClient):
         dict[str, Member]
             Mapping of bioguide ID to parsed `Member` instance.
         """
-        typer.echo(f"Fetching {len(bioguide_ids)} Members' data")
         async with self._client as client:
             tasks = [
                 functools.partial(
@@ -160,6 +153,7 @@ class CongressGovClient(BaseClient):
                 )
                 for b_id in bioguide_ids
             ]
-            results = await aiometer.run_all(tasks)
-        typer.echo("Finished fetching")
+            results = await aiometer.run_all(
+                tasks, max_at_once=self.config.max_concurrency
+            )
         return {r.parsed_data.bioguide_id: r.parsed_data for r in results}

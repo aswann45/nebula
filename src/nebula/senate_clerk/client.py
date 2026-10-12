@@ -6,13 +6,12 @@ parses the XML response, and returns structured models via Pydantic wrappers.
 
 import asyncio
 import json
-from datetime import datetime
 from pathlib import Path
 from typing import Any
 
-import typer
 from httpx import Response
 
+from nebula.core.transport import parse_http_date
 from nebula.schemas import BaseClient
 from nebula.senate_clerk.schemas import (
     ClerkSenatorInfoResponse,
@@ -53,7 +52,6 @@ class SenateClerkClient(BaseClient):
             Parsed and validated member roster data.
         """
         async with self._client as client:
-            typer.echo("Fetching current member data from Senate...")
             response: Response = await self._perform_request(
                 client,
                 "GET",
@@ -65,13 +63,8 @@ class SenateClerkClient(BaseClient):
                 text=response.text,
                 encoding=response.encoding,
                 content_type=response.headers.get("Content-Type"),
-                last_modified=(
-                    datetime.strptime(
-                        modified,
-                        "%a, %d %b %Y %H:%M:%S %Z",
-                    )
-                    if (modified := response.headers.get("Last-Modified"))
-                    else None
+                last_modified=parse_http_date(
+                    response.headers.get("Last-Modified")
                 ),
                 content_encoding=response.headers.get("Content-Encoding"),
                 content_length=response.headers.get("Content-Length"),

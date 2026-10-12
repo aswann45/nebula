@@ -6,19 +6,19 @@ parallel using TaskGroup and HTTPX.
 """
 
 import asyncio
-from datetime import datetime
 from typing import Any
+from urllib.parse import urljoin, urlsplit
 
 from httpx import AsyncClient, Response
-import typer
 
+from nebula.core.exceptions import RequestError, ResourceNotFoundError
+from nebula.core.transport import parse_http_date
 from nebula.schemas import BaseClient
 
 from .schemas import (
     OMBApportionmentsPageResponse,
     OMBSingleApportionmentResponse,
 )
-
 
 
 class OMBApportionmentsClient(BaseClient):
@@ -68,27 +68,15 @@ class OMBApportionmentsClient(BaseClient):
                 text=response.text,
                 encoding=response.encoding,
                 content_type=response.headers.get("Content-Type"),
-                last_modified=(
-                    datetime.strptime(
-                        modified,
-                        "%a, %d %b %Y %H:%M:%S %Z",
-                    )
-                    if (modified := response.headers.get("Last-Modified"))
-                    else None
+                last_modified=parse_http_date(
+                    response.headers.get("Last-Modified")
                 ),
                 content_encoding=response.headers.get("Content-Encoding"),
                 content_length=response.headers.get("Content-Length"),
                 url=str(response.url),
                 response_json=None,
             )
-        except self.BASE_ERROR as e:
-            if e.response is not None:
-                if e.response.status_code == 404:
-                    pass
-                else:
-                    typer.echo(str(e))
-            else:
-                typer.echo(str(e))
+        except ResourceNotFoundError:
             return None
 
     async def _get_single_apportionment(
@@ -127,27 +115,15 @@ class OMBApportionmentsClient(BaseClient):
                 text=response.text,
                 encoding=response.encoding,
                 content_type=response.headers.get("Content-Type"),
-                last_modified=(
-                    datetime.strptime(
-                        modified,
-                        "%a, %d %b %Y %H:%M:%S %Z",
-                    )
-                    if (modified := response.headers.get("Last-Modified"))
-                    else None
+                last_modified=parse_http_date(
+                    response.headers.get("Last-Modified")
                 ),
                 content_encoding=response.headers.get("Content-Encoding"),
                 content_length=response.headers.get("Content-Length"),
                 url=str(response.url),
                 response_json=None,
             )
-        except self.BASE_ERROR as e:
-            if e.response is not None:
-                if e.response.status_code == 404:
-                    pass
-                else:
-                    typer.echo(str(e))
-            else:
-                typer.echo(str(e))
+        except ResourceNotFoundError:
             return None
 
     async def get_apportionments_data(
@@ -161,24 +137,47 @@ class OMBApportionmentsClient(BaseClient):
         Returns
         -------
         list[OMBSingleApportionmentResponse or None]
-            List of parsed apportionment files (or None if fetch failed).
+            List of parsed apportionment files (or None if missing).
         """
-        async with self._client as client, asyncio.TaskGroup() as tg:
-            tasks = []
-            json_a_tags = await self._get_apportionments_page(
-                client,
-            )
-            if json_a_tags is None:
+        async with self._client as client:
+            page = await self._get_apportionments_page(client)
+            if page is None:
                 return []
-            for a_tag in json_a_tags.parsed_data:
-                if isinstance(a_tag["href"], str):
-                    task = tg.create_task(
-                        self._get_single_apportionment(
-                            client,
-                            json_link=a_tag["href"],
-                        )
-                    )
-                else:
+            links: list[str] = []
+            seen: set[str] = set()
+            permitted_host = urlsplit(self.BASE_URL).hostname
+            for tag in page.parsed_data:
+                href = tag.get("href")
+                if not isinstance(href, str):
                     continue
-                tasks.append(task)
-        return [task.result() for task in tasks]
+                url = urljoin(self.BASE_URL, href)
+                parts = urlsplit(url)
+                if (
+                    parts.hostname != permitted_host
+                    or not parts.path.lower().endswith(".json")
+                    or url in seen
+                ):
+                    continue
+                seen.add(url)
+                links.append(url)
+
+            results: list[OMBSingleApportionmentResponse | None] = [
+                None
+            ] * len(links)
+            positions = iter(enumerate(links))
+
+            async def worker() -> None:
+                for index, url in positions:
+                    results[index] = await self._get_single_apportionment(
+                        client, json_link=url
+                    )
+
+            try:
+                async with asyncio.TaskGroup() as group:
+                    for _ in range(
+                        min(self.config.max_concurrency, len(links))
+                    ):
+                        group.create_task(worker())
+            except* RequestError as failures:
+                raise failures.exceptions[0] from None
+            return results

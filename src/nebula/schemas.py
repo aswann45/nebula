@@ -4,11 +4,17 @@ Includes common API response wrappers, error handling classes,
 and an extensible HTTP client base for async service calls.
 """
 
+from collections.abc import AsyncIterator
+from contextlib import AbstractAsyncContextManager, asynccontextmanager
 from datetime import datetime
-from typing import Any
+from typing import Any, Self
 
-from httpx import AsyncClient, HTTPStatusError, Response
+from httpx import AsyncClient, Response
 from pydantic import BaseModel, Field, computed_field
+
+from nebula.core.config import HTTPConfig
+from nebula.core.exceptions import ConfigurationError, RequestError
+from nebula.core.transport import HTTPTransport
 
 
 class APIServiceResponse(BaseModel):
@@ -139,7 +145,7 @@ class APIServiceResponse(BaseModel):
         raise NotImplementedError
 
 
-class BaseClientError(Exception):
+class BaseClientError(RequestError):
     """Base exception raised when an API call fails.
 
     Attributes
@@ -152,8 +158,7 @@ class BaseClientError(Exception):
 
     def __init__(self, message: str, response: Response | None = None):
         self.message = message
-        self.response = response
-        super().__init__(self.message)
+        super().__init__(self.message, response=response)
 
 
 async def raise_on_4xx_5xx(response: Response) -> None:
@@ -178,8 +183,9 @@ async def raise_on_4xx_5xx(response: Response) -> None:
 class BaseClient:
     """Async base client for interacting with external APIs.
 
-    Provides standard retry, timeout, headers, and error-handling
-    patterns for derived service clients. Designed to be subclassed.
+    Coordinates a reusable transport for derived source clients.
+    Requests use one pool during an async context and a temporary pool
+    when a method is called on its own.
 
     Attributes
     ----------
@@ -187,7 +193,7 @@ class BaseClient:
         Base URL for the API (must be set by subclasses).
     BASE_ERROR : Exception type
         Custom exception raised on API error.
-    TIMEOUT : int
+    TIMEOUT : float
         Default request timeout in seconds.
     USER_AGENT : str
         Custom user-agent string for all requests.
@@ -196,42 +202,77 @@ class BaseClient:
 
     Raises
     ------
-    ValueError
+    ConfigurationError
         If `BASE_URL` is not provided at initialization.
     """
 
     BASE_URL: str | None = None
     BASE_ERROR: type[BaseClientError] = BaseClientError
-    TIMEOUT: int = 10
-    USER_AGENT: str = "constellation/1.0"
+    TIMEOUT: float = 30.0
+    USER_AGENT: str = "nebula/0.1.0"
     API_KEY: str | None = None
 
-    def __init__(self, **kwargs: Any | None):
-        for key, value in kwargs.items():
-            setattr(self, key, value)
+    def __init__(
+        self,
+        *,
+        config: HTTPConfig | None = None,
+        http_client: AsyncClient | None = None,
+        close_external_client: bool = False,
+        BASE_URL: str | None = None,
+        API_KEY: str | None = None,
+        USER_AGENT: str | None = None,
+        TIMEOUT: float | None = None,
+    ) -> None:
+        self.BASE_URL = BASE_URL or type(self).BASE_URL
+        self.API_KEY = API_KEY if API_KEY is not None else type(self).API_KEY
+        self.USER_AGENT = USER_AGENT or type(self).USER_AGENT
+        self.TIMEOUT = TIMEOUT or type(self).TIMEOUT
         if self.BASE_URL is None:
-            raise ValueError("BASE_URL must be set")
+            raise ConfigurationError("BASE_URL must be set")
+        if config is None:
+            config = HTTPConfig(timeout=self.TIMEOUT)
+        self.config = config
+        headers = {"User-Agent": self.USER_AGENT}
+        if self.API_KEY is not None:
+            headers["X-API-Key"] = self.API_KEY
+        self._transport = HTTPTransport(
+            config,
+            client=http_client,
+            close_external_client=close_external_client,
+            headers=headers,
+        )
+        self._entered = False
+
+    async def __aenter__(self) -> Self:
+        """Open the reusable client for a source-client lifecycle."""
+        _ = self._transport.client
+        self._entered = True
+        return self
+
+    async def __aexit__(self, *_exc: object) -> None:
+        """Release owned HTTP resources, including on cancellation."""
+        self._entered = False
+        await self._transport.close()
+
+    async def aclose(self) -> None:
+        """Release the owned HTTP client explicitly."""
+        self._entered = False
+        await self._transport.close()
 
     @property
-    def _client(self) -> AsyncClient:
-        """Create and configure an `httpx.AsyncClient` instance.
+    def _client(self) -> AbstractAsyncContextManager[AsyncClient]:
+        """Borrow the active connection pool or open it for one call."""
+        return self._client_context()
 
-        Sets base URL, headers, timeout, and error hook.
-
-        Returns
-        -------
-        AsyncClient
-            Configured HTTPX client.
-        """
-        _client = AsyncClient(
-            base_url=self.BASE_URL or "",
-            timeout=self.TIMEOUT,
-            event_hooks={"response": [raise_on_4xx_5xx]},
-        )
-        _client.headers["User-Agent"] = self.USER_AGENT
-        if self.API_KEY is not None:
-            _client.headers["X-API-Key"] = self.API_KEY
-        return _client
+    @asynccontextmanager
+    async def _client_context(self) -> AsyncIterator[AsyncClient]:
+        if self._entered:
+            yield self._transport.client
+        else:
+            try:
+                yield self._transport.client
+            finally:
+                await self._transport.close()
 
     async def _perform_request(
         self,
@@ -266,20 +307,15 @@ class BaseClient:
         BASE_ERROR
             If the response has a 4xx or 5xx status.
         """
-        try:
-            _method = method.lower()
-            url: str = (self.BASE_URL or "") + path
-            response: Response = await client.request(
-                _method,
-                url,
-                **kwargs,  # type: ignore
-            )
-            return response
-        except HTTPStatusError as exc:
-            raise self.BASE_ERROR(
-                f"{self.__class__.__name__} request failed:\n"
-                f"{method.upper()} {url}\n"
-                f"Exception: {exc!s}\n"
-                f"Message: {exc.response is not None and exc.response.text}\n",
-                response=exc.response,
-            ) from None
+        url = (
+            path
+            if path.startswith(("https://", "http://"))
+            else ((self.BASE_URL or "").rstrip("/") + "/" + path.lstrip("/"))
+        )
+        return await self._transport.request(
+            client,
+            method,
+            url,
+            source=type(self).__name__,
+            **kwargs,
+        )

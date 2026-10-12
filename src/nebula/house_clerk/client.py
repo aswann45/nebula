@@ -6,16 +6,16 @@ to normalize external data into structured models.
 """
 
 import functools
-from datetime import datetime
 from typing import Any
 
 import aiometer
-import typer
 from bs4 import BeautifulSoup as Soup
 from httpx import AsyncClient, Response
 
-from nebula.typings import RollCallRequestParams
+from nebula.core.exceptions import ParsingError, ResourceNotFoundError
+from nebula.core.transport import parse_http_date
 from nebula.schemas import BaseClient
+from nebula.typings import RollCallRequestParams
 
 from .schemas import ClerkMemberInfoResponse, ClerkRollCallResponse
 
@@ -53,7 +53,6 @@ class HouseClerkClient(BaseClient):
             Parsed and structured response including member metadata.
         """
         async with self._client as client:
-            typer.echo("Fetching current member data from House Clerk...")
             response: Response = await self._perform_request(
                 client, "GET", "/xml/lists/MemberData.xml", **kwargs
             )
@@ -62,13 +61,8 @@ class HouseClerkClient(BaseClient):
                 text=response.text,
                 encoding=response.encoding,
                 content_type=response.headers.get("Content-Type"),
-                last_modified=(
-                    datetime.strptime(
-                        modified,
-                        "%a, %d %b %Y %H:%M:%S %Z",
-                    )
-                    if (modified := response.headers.get("Last-Modified"))
-                    else None
+                last_modified=parse_http_date(
+                    response.headers.get("Last-Modified")
                 ),
                 content_encoding=response.headers.get("Content-Encoding"),
                 content_length=response.headers.get("Content-Length"),
@@ -115,13 +109,8 @@ class HouseClerkClient(BaseClient):
                 text=response.text,
                 encoding=response.encoding,
                 content_type=response.headers.get("Content-Type"),
-                last_modified=(
-                    datetime.strptime(
-                        modified,
-                        "%a, %d %b %Y %H:%M:%S %Z",
-                    )
-                    if (modified := response.headers.get("Last-Modified"))
-                    else None
+                last_modified=parse_http_date(
+                    response.headers.get("Last-Modified")
                 ),
                 content_encoding=response.headers.get("Content-Encoding"),
                 content_length=response.headers.get("Content-Length"),
@@ -129,16 +118,7 @@ class HouseClerkClient(BaseClient):
                 response_json=None,
                 year=int(year),
             )
-        except self.BASE_ERROR as e:
-            if e.response is not None:
-                if e.response.status_code == 404:
-                    typer.echo(
-                        f"Roll call {year} {roll_call_number} not found"
-                    )
-                else:
-                    typer.echo(str(e))
-            else:
-                typer.echo(str(e))
+        except ResourceNotFoundError:
             return None
 
     async def get_roll_call_vote_data(
@@ -161,7 +141,6 @@ class HouseClerkClient(BaseClient):
         list[ClerkRollCallResponse or None]
             List of structured responses or None for missing records.
         """
-        typer.echo(f"Fetching {len(roll_call_requests)} roll calls")
         async with self._client as client:
             tasks = [
                 functools.partial(
@@ -172,8 +151,11 @@ class HouseClerkClient(BaseClient):
                 )
                 for req in roll_call_requests
             ]
-            results = await aiometer.run_all(tasks, max_per_second=5)
-        typer.echo("Finished fetching")
+            results = await aiometer.run_all(
+                tasks,
+                max_at_once=self.config.max_concurrency,
+                max_per_second=5,
+            )
         return results
 
     async def get_max_roll_call_number(
@@ -213,5 +195,5 @@ class HouseClerkClient(BaseClient):
             soup = Soup(response.text, "html.parser")
             roll_call_link = soup.find("a")
             if not roll_call_link:
-                raise Exception("Roll call link not found")
+                raise ParsingError("Roll call link not found")
             return int(roll_call_link.text.strip())
