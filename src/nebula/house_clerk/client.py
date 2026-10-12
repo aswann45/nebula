@@ -17,6 +17,9 @@ from nebula.core.transport import parse_http_date
 from nebula.schemas import BaseClient
 from nebula.typings import RollCallRequestParams
 
+from .member_model import ClerkData
+from .models import HouseRollCall, HouseRollCallRequest
+from .parsers import HouseMemberParser, HouseRollCallParser
 from .schemas import ClerkMemberInfoResponse, ClerkRollCallResponse
 
 
@@ -33,6 +36,29 @@ class HouseClerkClient(BaseClient):
     """
 
     BASE_URL = "https://clerk.house.gov"
+
+    async def get_current_member_model(self) -> ClerkData:
+        """Retrieve the current roster as a validated source model."""
+        async with self._client as client:
+            response = await self._perform_request(
+                client, "GET", "/xml/lists/MemberData.xml"
+            )
+            return HouseMemberParser().parse(response.content)
+
+    async def get_roll_call_vote_model(
+        self, year: int | str, roll_call_number: int | str
+    ) -> HouseRollCall | None:
+        """Retrieve one roll call as a validated model, or None on 404."""
+        request = HouseRollCallRequest(
+            year=year, roll_call_number=roll_call_number
+        )
+        async with self._client as client:
+            response = await self._get_roll_call_vote(
+                client, request.year, request.roll_call_number
+            )
+            if response is None or response.text is None:
+                return None
+            return HouseRollCallParser().parse(response.text.encode())
 
     async def get_current_member_data(
         self, **kwargs: Any | None
@@ -102,7 +128,7 @@ class HouseClerkClient(BaseClient):
             response: Response = await self._perform_request(
                 client,
                 "GET",
-                f"/evs/{year}/roll{roll_call_number}.xml",
+                f"/evs/{year}/roll{int(roll_call_number):03d}.xml",
                 **kwargs,
             )
             return ClerkRollCallResponse(

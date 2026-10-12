@@ -6,15 +6,16 @@ and an extensible HTTP client base for async service calls.
 
 from collections.abc import AsyncIterator
 from contextlib import AbstractAsyncContextManager, asynccontextmanager
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import Any, Self
 
 from httpx import AsyncClient, Response
-from pydantic import BaseModel, Field, computed_field
+from pydantic import BaseModel, Field
 
 from nebula.core.config import HTTPConfig
 from nebula.core.exceptions import ConfigurationError, RequestError
 from nebula.core.transport import HTTPTransport
+from nebula.models.base import SourceMetadata
 
 
 class APIServiceResponse(BaseModel):
@@ -51,6 +52,7 @@ class APIServiceResponse(BaseModel):
     """
 
     url: str = Field(..., description="The URL of the response")
+    retrieved_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
     content_type: str | None = Field(
         None, description="The content type of the response"
     )
@@ -73,7 +75,6 @@ class APIServiceResponse(BaseModel):
 
     _data: Any | None = None
 
-    @computed_field  # type: ignore[prop-decorator]
     @property
     def data(self) -> Any:
         """Return the raw parsed data payload from the response.
@@ -109,7 +110,16 @@ class APIServiceResponse(BaseModel):
 
     _parsed_data: Any | None = None
 
-    @computed_field  # type: ignore[prop-decorator]
+    def source_metadata(self, source: str) -> SourceMetadata:
+        """Return retrieval metadata separately from parsed content."""
+        return SourceMetadata(
+            source=source,
+            url=self.url,
+            retrieved_at=self.retrieved_at,
+            last_modified=self.last_modified,
+            content_type=self.content_type,
+        )
+
     @property
     def parsed_data(self) -> Any:
         """Return enriched or post-processed response content.

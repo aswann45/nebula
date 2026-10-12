@@ -7,10 +7,10 @@ XML-based endpoints. Provides parsed XML access and structured Pydantic models.
 from typing import Any, cast
 
 import xmltodict
-from pydantic import computed_field
 
 from nebula.schemas import APIServiceResponse
 from nebula.senate_clerk.member_model import ClerkData
+from nebula.senate_clerk.parsers import SenateMemberParser
 
 
 class SenateClerkResponse(APIServiceResponse):
@@ -25,7 +25,6 @@ class SenateClerkResponse(APIServiceResponse):
         Parsed XML response body as a dictionary.
     """
 
-    @computed_field  # type: ignore[prop-decorator]
     @property
     def data(self) -> dict:
         """Return the XML response as a parsed dictionary.
@@ -61,7 +60,6 @@ class ClerkSenatorInfoResponse(SenateClerkResponse):
     `SenatorItem` and `SenatorsData` schemas.
     """
 
-    @computed_field  # type: ignore[prop-decorator]
     @property
     def parsed_data(self) -> ClerkData:
         """Return fully validated data from the Clerk XML response.
@@ -75,7 +73,9 @@ class ClerkSenatorInfoResponse(SenateClerkResponse):
             Structured object representing the full Senate membership.
         """
         if self._parsed_data is None:
-            self._parsed_data = ClerkData.model_validate(self.data)
+            self._parsed_data = SenateMemberParser().parse(
+                (self.text or "").encode()
+            )
         return cast(ClerkData, self._parsed_data)
 
     @parsed_data.setter

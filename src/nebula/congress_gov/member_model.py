@@ -236,7 +236,7 @@ class Member(BaseModel):
         Field(alias="sponsoredLegislation", default=None),
     ]
     state: str
-    terms: Sequence[Term]
+    terms: Sequence[Term] = Field(min_length=1)
     update_date: Annotated[str, Field(alias="updateDate")]
     leadership: Sequence[LeadershipItem] | None = None
     honorific_name: Annotated[str | None, Field(alias="honorificName")] = None

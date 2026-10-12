@@ -14,6 +14,7 @@ import aiometer
 from httpx import AsyncClient, Response
 
 from nebula.congress_gov.member_model import Member
+from nebula.congress_gov.parsers import CongressGovMemberParser
 from nebula.congress_gov.schemas import (
     CongressGovMemberResponse,
 )
@@ -64,6 +65,16 @@ class CongressGovClient(BaseClient):
             )
         kwargs["API_KEY"] = str(key)
         super().__init__(**kwargs)
+
+    async def get_member_model(self, bioguide_id: str) -> Member:
+        """Retrieve one member as a validated Congress.gov model."""
+        async with self._client as client:
+            response = await self._perform_request(
+                client,
+                "GET",
+                f"/member/{bioguide_id}?format=json&api_key={self.API_KEY}",
+            )
+            return CongressGovMemberParser().parse(response.content)
 
     async def get_bill_actions(
         self, **kwargs: Any | None

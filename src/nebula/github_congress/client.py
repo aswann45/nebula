@@ -11,6 +11,16 @@ from httpx import Response
 from nebula.core.transport import parse_http_date
 from nebula.schemas import BaseClient
 
+from .models import (
+    GitHubCommittee,
+    GitHubHistoricalMembersRequest,
+    GitHubMember,
+)
+from .parsers import (
+    GitHubCommitteeParser,
+    GitHubHistoricalMemberParser,
+    GitHubMemberParser,
+)
 from .schemas import (
     GHCCurrentCommitteeResponse,
     GHCCurrentMemberResponse,
@@ -35,6 +45,38 @@ class GitHubCongressClient(BaseClient):
         "https://raw.githubusercontent.com/unitedstates/"
         "congress-legislators/main"
     )
+
+    async def get_current_members(self) -> list[GitHubMember]:
+        """Retrieve current legislators as validated source models."""
+        async with self._client as client:
+            response = await self._perform_request(
+                client, "GET", "/legislators-current.yaml"
+            )
+            return GitHubMemberParser().parse(response.content)
+
+    async def get_current_committees(self) -> list[GitHubCommittee]:
+        """Retrieve current committees as validated source models."""
+        async with self._client as client:
+            response = await self._perform_request(
+                client, "GET", "/committees-current.yaml"
+            )
+            return GitHubCommitteeParser().parse(response.content)
+
+    async def get_historical_members(
+        self, year: int | str
+    ) -> list[GitHubMember]:
+        """Retrieve historical members whose last term reaches a year."""
+        minimum_year = GitHubHistoricalMembersRequest(year=year).year
+        async with self._client as client:
+            response = await self._perform_request(
+                client, "GET", "/legislators-historical.yaml"
+            )
+            members = GitHubHistoricalMemberParser().parse(response.content)
+            return [
+                member
+                for member in members
+                if member.terms[-1].end.year >= minimum_year
+            ]
 
     async def get_current_member_data(
         self, **kwargs: Any | None

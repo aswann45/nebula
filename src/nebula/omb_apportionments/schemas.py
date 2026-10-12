@@ -11,7 +11,7 @@ from datetime import datetime
 from typing import Any, cast
 
 from bs4 import BeautifulSoup, Tag
-from pydantic import ConfigDict, computed_field
+from pydantic import ConfigDict
 
 from nebula.schemas import APIServiceResponse
 
@@ -23,7 +23,6 @@ class OMBApportionmentsPageResponse(APIServiceResponse):
     JSON file links. These files represent individual apportionments.
     """
 
-    @computed_field  # type: ignore[prop-decorator]
     @property
     def data(self) -> BeautifulSoup:
         """Parse the response HTML into a BeautifulSoup document tree.
@@ -52,7 +51,6 @@ class OMBApportionmentsPageResponse(APIServiceResponse):
     def data(self, value: dict) -> None:
         self._data = value
 
-    @computed_field  # type: ignore[prop-decorator]
     @property
     def parsed_data(self) -> list[Tag]:
         """Extract JSON file link tags from the HTML document.
@@ -92,7 +90,6 @@ class OMBSingleApportionmentResponse(APIServiceResponse):
 
     snake_case_pattern: re.Pattern = re.compile(r"(?<!^)(?=[A-Z])")
 
-    @computed_field  # type: ignore[prop-decorator]
     @property
     def data(self) -> dict:
         """Return parsed JSON response body as a dictionary.
@@ -119,7 +116,6 @@ class OMBSingleApportionmentResponse(APIServiceResponse):
     def data(self, value: dict) -> None:
         self._data = value
 
-    @computed_field  # type: ignore[prop-decorator]
     @property
     def parsed_data(self) -> dict:
         """Return normalized and transformed apportionment data.

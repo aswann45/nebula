@@ -11,10 +11,19 @@ from urllib.parse import urljoin, urlsplit
 
 from httpx import AsyncClient, Response
 
-from nebula.core.exceptions import RequestError, ResourceNotFoundError
+from nebula.core.exceptions import (
+    ConfigurationError,
+    RequestError,
+    ResourceNotFoundError,
+)
 from nebula.core.transport import parse_http_date
 from nebula.schemas import BaseClient
 
+from .models import OMBApportionment, OMBApportionmentReference
+from .parsers import (
+    OMBApportionmentParser,
+    OMBApportionmentReferenceParser,
+)
 from .schemas import (
     OMBApportionmentsPageResponse,
     OMBSingleApportionmentResponse,
@@ -34,6 +43,37 @@ class OMBApportionmentsClient(BaseClient):
     """
 
     BASE_URL: str = "https://apportionment-public.max.gov/"
+
+    async def list_apportionment_references(
+        self,
+    ) -> list[OMBApportionmentReference]:
+        """Return validated OMB JSON links in index order."""
+        async with self._client as client:
+            page = await self._get_apportionments_page(client)
+            if page is None or page.text is None:
+                return []
+            return OMBApportionmentReferenceParser(self.BASE_URL).parse(
+                page.text.encode()
+            )
+
+    async def get_apportionment_model(
+        self, url: str
+    ) -> OMBApportionment | None:
+        """Retrieve one JSON resource as a validated OMB model."""
+        parts = urlsplit(urljoin(self.BASE_URL, url))
+        if (
+            parts.scheme != "https"
+            or parts.hostname != urlsplit(self.BASE_URL).hostname
+            or not parts.path.lower().endswith(".json")
+        ):
+            raise ConfigurationError("Invalid OMB JSON resource URL")
+        async with self._client as client:
+            response = await self._get_single_apportionment(
+                client, parts.geturl()
+            )
+            if response is None or response.text is None:
+                return None
+            return OMBApportionmentParser().parse(response.text.encode())
 
     async def _get_apportionments_page(
         self,

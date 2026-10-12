@@ -10,10 +10,11 @@ from typing import Any, Literal, cast
 import inflect
 import us
 import yaml
-from pydantic import BaseModel, Field, computed_field
+from pydantic import BaseModel, Field
 
-from nebula.typings import MemberInfoDict
+from nebula.github_congress.models import GitHubCommittee
 from nebula.schemas import APIServiceResponse
+from nebula.typings import MemberInfoDict
 
 
 class HistoricalMemberIDData(BaseModel):
@@ -108,52 +109,44 @@ class HistoricalMemberData(BaseModel):
 
     id_: HistoricalMemberIDData = Field(..., alias="id")
     name: HistoricalMemberNameData = Field(...)
-    terms: list[HistoricalMemberTermData] = Field(default_factory=list)
+    terms: list[HistoricalMemberTermData] = Field(min_length=1)
     active: bool = Field(default=False)
 
-    @computed_field  # type: ignore[prop-decorator]
     @property
     def bioguide_id(self) -> str:
         """Return the member's Bioguide ID."""
         return self.id_.bioguide
 
-    @computed_field  # type: ignore[prop-decorator]
     @property
     def lastname(self) -> str:
         """Return the Member's last name."""
         return self.name.last
 
-    @computed_field  # type: ignore[prop-decorator]
     @property
     def firstname(self) -> str:
         """Return the Member's first name."""
         return self.name.first
 
-    @computed_field  # type: ignore[prop-decorator]
     @property
     def middlename(self) -> str | None:
         """Return the Member's middle name or None."""
         return self.name.middle
 
-    @computed_field  # type: ignore[prop-decorator]
     @property
     def suffix(self) -> str | None:
         """Return the Member's name's suffix or None."""
         return self.name.suffix
 
-    @computed_field  # type: ignore[prop-decorator]
     @property
     def namelist(self) -> str:
         """Return the Member's comma-separated last and first names."""
         return f"{self.lastname}, {self.firstname}"
 
-    @computed_field  # type: ignore[prop-decorator]
     @property
     def sort_name(self) -> str:
         """Return the namelist attribute in uppercase."""
         return self.namelist.upper().replace(" ", "")
 
-    @computed_field  # type: ignore[prop-decorator]
     @property
     def official_name(self) -> str | None:
         """Return the full official name or fallback based on components."""
@@ -164,13 +157,11 @@ class HistoricalMemberData(BaseModel):
                 return f"{self.firstname} {self.lastname}"
         return self.name.official_full
 
-    @computed_field  # type: ignore[prop-decorator]
     @property
     def formal_name(self) -> str | None:
         """Return the Member's official name."""
         return self.official_name
 
-    @computed_field  # type: ignore[prop-decorator]
     @property
     def party(self) -> Literal["D", "R", "I"]:
         """Return party abbreviation ('D', 'R', 'I') from most recent term."""
@@ -181,7 +172,6 @@ class HistoricalMemberData(BaseModel):
         else:
             return "I"
 
-    @computed_field  # type: ignore[prop-decorator]
     @property
     def chamber(self) -> Literal["House", "Senate"]:
         """Return the Member's chamber from the most recent term."""
@@ -190,22 +180,21 @@ class HistoricalMemberData(BaseModel):
         else:
             return "Senate"
 
-    @computed_field  # type: ignore[prop-decorator]
     @property
     def state_postal_code(self) -> str:
         """Return the postal abbreviation for the Member's state."""
         return self.terms[-1].state
 
-    @computed_field  # type: ignore[prop-decorator]
     @property
     def state_fullname(self) -> str:
         """Return the name of the Member's state."""
         try:
-            return us.states.lookup((state := self.terms[-1].state)).name  # type: ignore[union-attr]
+            return us.states.lookup(state := self.terms[-1].state).name  # type: ignore[union-attr]
         except AttributeError as ae:
-            raise ValueError(f"Could not resolve state name from {state}") from ae
+            raise ValueError(
+                f"Could not resolve state name from {state}"
+            ) from ae
 
-    @computed_field  # type: ignore[prop-decorator]
     @property
     def district(self) -> str | None:
         """Return the number for the Member's district or None."""
@@ -215,7 +204,6 @@ class HistoricalMemberData(BaseModel):
         else:
             return None
 
-    @computed_field  # type: ignore[prop-decorator]
     @property
     def state_district(self) -> str | None:
         """Return the abbreviation for the Member's distict."""
@@ -224,19 +212,16 @@ class HistoricalMemberData(BaseModel):
         else:
             return None
 
-    @computed_field  # type: ignore[prop-decorator]
     @property
     def elected_date(self) -> datetime:
         """Return the datetime for the date of the Member's first election."""
         return datetime.strptime(self.terms[0].start, "%Y-%m-%d")
 
-    @computed_field  # type: ignore[prop-decorator]
     @property
     def sworn_date(self) -> datetime:
         """Return the Member's date of election."""
         return self.elected_date
 
-    @computed_field  # type: ignore[prop-decorator]
     @property
     def vacate_date(self) -> datetime:
         """Return the end date of the last term as a datetime."""
@@ -259,7 +244,6 @@ class GitHubCongressResponse(APIServiceResponse):
         If `text` is missing.
     """
 
-    @computed_field  # type: ignore[prop-decorator]
     @property
     def data(self) -> dict:
         """Return parsed YAML response data from the GitHub Congress dataset.
@@ -308,7 +292,6 @@ class GHCCurrentMemberResponse(GitHubCongressResponse):
         Processed member data.
     """
 
-    @computed_field  # type: ignore[prop-decorator]
     @property
     def parsed_data(self) -> list[MemberInfoDict]:
         """Return parsed current member data from GitHub YAML.
@@ -364,21 +347,27 @@ class GHCCurrentMemberResponse(GitHubCongressResponse):
 
             reshaped_roles = []
             for role in current_roles:
-                reshaped_roles.append({
-                    "role_name": role.get("title"),
-                    "level": "leadership",
-                })
+                reshaped_roles.append(
+                    {
+                        "role_name": role.get("title"),
+                        "level": "leadership",
+                    }
+                )
 
-            res.update({
-                "leadership_roles": reshaped_roles,
-                "bioguide_id": member_dict.get("id", {}).get("bioguide"),
-            })
+            res.update(
+                {
+                    "leadership_roles": reshaped_roles,
+                    "bioguide_id": member_dict.get("id", {}).get("bioguide"),
+                }
+            )
 
         if (terms := member_dict.get("terms")) is not None:
-            res.update({
-                "terms": terms,
-                "bioguide_id": member_dict.get("id", {}).get("bioguide"),
-            })
+            res.update(
+                {
+                    "terms": terms,
+                    "bioguide_id": member_dict.get("id", {}).get("bioguide"),
+                }
+            )
 
         if len(res) == 0:
             return None
@@ -401,18 +390,24 @@ class GHCCurrentMemberResponse(GitHubCongressResponse):
 
 
 class GHCCurrentCommitteeResponse(GitHubCongressResponse):
-    """Placeholder class for committee data.
+    """Typed committee data from the published GitHub YAML.
 
     Attributes
     ----------
-    parsed_data : Any
-        Committee structure (custom format TBD).
+    parsed_data : list[GitHubCommittee]
+        Validated committee records.
     """
 
     @property
-    def parsed_data(self) -> Any:
-        """Placeholder property."""
-        return self._parsed_data
+    def parsed_data(self) -> list[GitHubCommittee]:
+        """Return validated committee records from the YAML body."""
+        if self._parsed_data is None:
+            from .parsers import GitHubCommitteeParser
+
+            self._parsed_data = GitHubCommitteeParser().parse(
+                (self.text or "").encode()
+            )
+        return cast(list[GitHubCommittee], self._parsed_data)
 
     @parsed_data.setter
     def parsed_data(self, value: Any) -> None:

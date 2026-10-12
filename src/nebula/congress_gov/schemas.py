@@ -5,14 +5,11 @@ data from Congress.gov. Extends base `APIServiceResponse` for unified
 error handling, logging, and lazy parsing.
 """
 
+import json
 from typing import Any, cast
 
-from pydantic import computed_field
-
-from nebula.congress_gov.member_model import (
-    Member,
-    MemberResponseModel,
-)
+from nebula.congress_gov.member_model import Member
+from nebula.congress_gov.parsers import CongressGovMemberParser
 from nebula.schemas import APIServiceResponse
 
 
@@ -33,7 +30,6 @@ class CongressGovResponse(APIServiceResponse):
         If no response JSON is present in the API response.
     """
 
-    @computed_field  # type: ignore[prop-decorator]
     @property
     def data(self) -> dict:
         """Return parsed JSON response as a dictionary.
@@ -75,7 +71,6 @@ class CongressGovMemberResponse(CongressGovResponse):
     from the JSON payload.
     """
 
-    @computed_field  # type: ignore[prop-decorator]
     @property
     def parsed_data(self) -> Member:
         """Return parsed and validated Member object.
@@ -94,9 +89,12 @@ class CongressGovMemberResponse(CongressGovResponse):
             If response JSON cannot be validated.
         """
         if self._parsed_data is None:
-            response_model = MemberResponseModel.model_validate(self.data)
-            m: Member = response_model.member
-            self._parsed_data = m
+            content = (
+                json.dumps(self.response_json).encode()
+                if self.response_json is not None
+                else (self.text or "").encode()
+            )
+            self._parsed_data = CongressGovMemberParser().parse(content)
         return cast(Member, self._parsed_data)
 
     @parsed_data.setter

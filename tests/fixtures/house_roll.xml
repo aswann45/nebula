@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rollcall-vote>
+	<vote-metadata>
+		<majority>R</majority>
+		<congress>119</congress>
+		<session>1st</session>
+		<chamber>U.S. House of Representatives</chamber>
+		<rollcall-num>1</rollcall-num>
+		<legis-num>QUORUM</legis-num>
+		<vote-question>Call by States</vote-question>
+		<vote-type>QUORUM</vote-type>
+		<vote-result>Passed</vote-result>
+		<action-date>3-Jan-2025</action-date>
+		<action-time>
+			<time-etz>12:33</time-etz>
+			<text>12:33 PM</text>
+		</action-time>
+		<vote-desc></vote-desc>
+		<vote-totals>
+			<totals-by-party-header>
+				<party-header>Party</party-header>
+				<yea-header>Yeas</yea-header>
+				<nay-header>Nays</nay-header>
+				<present-header>Answered “Present”</present-header>
+				<not-voting-header>Not Voting</not-voting-header>
+			</totals-by-party-header>
+			<totals-by-party>
+				<party>Republican</party>
+				<yea-total>0</yea-total>
+				<nay-total>0</nay-total>
+				<present-total>219</present-total>
+				<not-voting-total>1</not-voting-total>
+			</totals-by-party>
+			<totals-by-party>
+				<party>Democratic</party>
+				<yea-total>0</yea-total>
+				<nay-total>0</nay-total>
+				<present-total>214</present-total>
+				<not-voting-total>1</not-voting-total>
+			</totals-by-party>
+			<totals-by-party>
+				<party>Independent</party>
+				<yea-total>0</yea-total>
+				<nay-total>0</nay-total>
+				<present-total>0</present-total>
+				<not-voting-total>0</not-voting-total>
+			</totals-by-party>
+			<totals-by-vote>
+				<total-stub>Totals</total-stub>
+				<yea-total>0</yea-total>
+				<nay-total>0</nay-total>
+				<present-total>433</present-total>
+				<not-voting-total>2</not-voting-total>
+			</totals-by-vote>
+		</vote-totals>
+	</vote-metadata>
+	<vote-data>
+		<recorded-vote>
+			<legislator>
+				<name-id>A000370</name-id>
+				<sort-field>Adams</sort-field>
+				<unaccented-name>Adams</unaccented-name>
+				<party>D</party>
+				<state>NC</state>
+				<role>legislator</role>
+				<text>Adams</text>
+			</legislator>
+			<vote>Present</vote>
+		</recorded-vote>
+		<recorded-vote>
+			<legislator>
+				<name-id>A000055</name-id>
+				<sort-field>Aderholt</sort-field>
+				<unaccented-name>Aderholt</unaccented-name>
+				<party>R</party>
+				<state>AL</state>
+				<role>legislator</role>
+				<text>Aderholt</text>
+			</legislator>
+			<vote>Present</vote>
+		</recorded-vote>
+		<recorded-vote>
+			<legislator>
+				<name-id>A000371</name-id>
+				<sort-field>Aguilar</sort-field>
+				<unaccented-name>Aguilar</unaccented-name>
+				<party>D</party>
+				<state>CA</state>
+				<role>legislator</role>
+				<text>Aguilar</text>
+			</legislator>
+			<vote>Present</vote>
+		</recorded-vote>
+	</vote-data>
+</rollcall-vote>

@@ -1,9 +1,9 @@
 # Nebula
 
 Nebula retrieves data from Congress.gov, the House and Senate clerks, the
-Congressional Legislators GitHub dataset, and OMB apportionments. This is
-the Phase 1 transport update; the existing source clients and response
-wrappers remain the public interface.
+Congressional Legislators GitHub dataset, and OMB apportionments. The
+existing source clients and response wrappers remain available alongside
+new typed parsing and retrieval methods.
 
 ## HTTP client lifecycle
 
@@ -36,5 +36,33 @@ For example, use `CongressGovClient(API_KEY="...")` inside an async context.
 
 OMB collection still returns the existing response-wrapper list. Its HTML
 index links are resolved against the OMB host, deduplicated, and downloaded
-with at most `max_concurrency` workers. Typed OMB models and independent
-parsers are planned for Phase 2.
+with at most `max_concurrency` workers.
+
+## Typed records and local parsing
+
+Phase 2 adds independent parsers for OMB JSON and HTML, House and Senate
+XML, Congress.gov JSON, and congressional YAML. Parsers accept bytes, so a
+local file can be validated without an HTTP connection:
+
+```python
+from pathlib import Path
+from nebula.omb_apportionments.parsers import OMBApportionmentParser
+
+record = OMBApportionmentParser().parse(Path("apportionment.json").read_bytes())
+print(record.schedule_data[0].approved_amount)
+```
+
+The new typed retrieval methods include
+`OMBApportionmentsClient.get_apportionment_model()`,
+`HouseClerkClient.get_roll_call_vote_model()`, and
+`GitHubCongressClient.get_current_members()`. Existing methods retain their
+response-wrapper returns. The OMB wrapper's legacy `parsed_data` property
+still uses `schedue_data`; the validated `OMBApportionment` model uses
+`schedule_data`.
+
+Source records retain additional published fields. OMB monetary amounts use
+`Decimal`, and account codes and period-of-availability values remain text.
+The new House roll-call model preserves the original vote metadata alongside
+normalized fields. Converting a source record to a small canonical domain
+record can omit source details, so keep the source model when full fidelity
+matters. Public model serialization does not trigger parsing or network work.

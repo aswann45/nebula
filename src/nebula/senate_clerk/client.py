@@ -13,6 +13,8 @@ from httpx import Response
 
 from nebula.core.transport import parse_http_date
 from nebula.schemas import BaseClient
+from nebula.senate_clerk.member_model import ClerkData
+from nebula.senate_clerk.parsers import SenateMemberParser
 from nebula.senate_clerk.schemas import (
     ClerkSenatorInfoResponse,
 )
@@ -32,6 +34,16 @@ class SenateClerkClient(BaseClient):
     """
 
     BASE_URL = "https://www.senate.gov"
+
+    async def get_current_member_model(self) -> ClerkData:
+        """Retrieve the Senate roster as a validated source model."""
+        async with self._client as client:
+            response = await self._perform_request(
+                client,
+                "GET",
+                "/legislative/LIS_MEMBER/cvc_member_data.xml",
+            )
+            return SenateMemberParser().parse(response.content)
 
     async def get_current_member_data(
         self, **kwargs: Any | None

@@ -1,0 +1,437 @@
+<?xml version="1.0" encoding="utf-8"?>
+<MemberData>
+	<publish-date>October 1, 2026</publish-date>
+	<title-info>
+		<congress-num>119</congress-num>
+		<congress-text>One Hundred Nineteenth Congress</congress-text>
+		<session>2</session>
+		<majority>R</majority>
+		<minority>D</minority>
+		<clerk>KEVIN F. McCUMBER</clerk>
+		<weburl>https://clerk.house.gov</weburl>
+	</title-info>
+	<members>
+		<member>
+			<statedistrict>AK00</statedistrict>
+			<member-info>
+				<namelist>Begich, Nicholas</namelist>
+				<bioguideID>B001323</bioguideID>
+				<lastname>Begich</lastname>
+				<firstname>Nicholas</firstname>
+				<middlename>J.</middlename>
+				<sort-name>BEGICH,NICHOLAS</sort-name>
+				<suffix>III</suffix>
+				<courtesy>Mr.</courtesy>
+				<prior-congress>0</prior-congress>
+				<official-name>Nicholas J. Begich III</official-name>
+				<formal-name>Mr. Begich</formal-name>
+				<party>R</party>
+				<caucus>R</caucus>
+				<state>
+					<postal-code>AK</postal-code>
+					<state-fullname>Alaska</state-fullname>
+				</state>
+				<district>At Large</district>
+				<townname>Chugiak</townname>
+				<office-building>CHOB</office-building>
+				<office-room>153</office-room>
+				<office-zip>20515</office-zip>
+				<office-zip-suffix>0200</office-zip-suffix>
+				<phone>(202) 225-5765</phone>
+				<elected-date>
+					<date>20241105</date>
+					<text>November  5, 2024</text>
+				</elected-date>
+				<sworn-date>
+					<date>20250103</date>
+					<text>January  3, 2025</text>
+				</sworn-date>
+			</member-info>
+			<committee-assignments>
+				<committee>
+					<comcode>II00</comcode>
+					<rank>22</rank>
+				</committee>
+				<committee>
+					<comcode>PW00</comcode>
+					<rank>25</rank>
+				</committee>
+				<committee>
+					<comcode>SY00</comcode>
+					<rank>20</rank>
+				</committee>
+				<subcommittee>
+					<subcomcode>II06</subcomcode>
+					<rank>13</rank>
+					<leadership>Vice Chair</leadership>
+				</subcommittee>
+				<subcommittee>
+					<subcomcode>II15</subcomcode>
+					<rank>5</rank>
+				</subcommittee>
+				<subcommittee>
+					<subcomcode>PW05</subcomcode>
+					<rank>13</rank>
+				</subcommittee>
+				<subcommittee>
+					<subcomcode>PW07</subcomcode>
+					<rank>5</rank>
+				</subcommittee>
+				<subcommittee>
+					<subcomcode>PW14</subcomcode>
+					<rank>13</rank>
+				</subcommittee>
+				<subcommittee>
+					<subcomcode>SY18</subcomcode>
+					<rank>4</rank>
+				</subcommittee>
+				<subcommittee>
+					<subcomcode>SY20</subcomcode>
+					<rank>8</rank>
+				</subcommittee>
+				<subcommittee>
+					<subcomcode>SY21</subcomcode>
+					<rank>5</rank>
+				</subcommittee>
+			</committee-assignments>
+		</member>
+		<member>
+			<statedistrict>AL01</statedistrict>
+			<member-info>
+				<namelist>Moore, Barry</namelist>
+				<bioguideID>M001212</bioguideID>
+				<lastname>Moore</lastname>
+				<firstname>Barry</firstname>
+				<middlename></middlename>
+				<sort-name>MOORE,BARRY</sort-name>
+				<suffix></suffix>
+				<courtesy>Mr.</courtesy>
+				<prior-congress>118</prior-congress>
+				<official-name>Barry Moore</official-name>
+				<formal-name>Mr. Moore of Alabama</formal-name>
+				<party>R</party>
+				<caucus>R</caucus>
+				<state>
+					<postal-code>AL</postal-code>
+					<state-fullname>Alabama</state-fullname>
+				</state>
+				<district>1st</district>
+				<townname>Enterprise</townname>
+				<office-building>LHOB</office-building>
+				<office-room>1511</office-room>
+				<office-zip>20515</office-zip>
+				<office-zip-suffix>0101</office-zip-suffix>
+				<phone>(202) 225-2901</phone>
+				<elected-date>
+					<date>20241105</date>
+					<text>November  5, 2024</text>
+				</elected-date>
+				<sworn-date>
+					<date>20250103</date>
+					<text>January  3, 2025</text>
+				</sworn-date>
+			</member-info>
+			<committee-assignments>
+				<committee>
+					<comcode>AG00</comcode>
+					<rank>15</rank>
+				</committee>
+				<committee>
+					<comcode>JU00</comcode>
+					<rank>13</rank>
+				</committee>
+				<subcommittee>
+					<subcomcode>AG15</subcomcode>
+					<rank>2</rank>
+					<leadership>Vice Chair</leadership>
+				</subcommittee>
+				<subcommittee>
+					<subcomcode>AG16</subcomcode>
+					<rank>7</rank>
+				</subcommittee>
+				<subcommittee>
+					<subcomcode>AG29</subcomcode>
+					<rank>9</rank>
+				</subcommittee>
+				<subcommittee>
+					<subcomcode>JU01</subcomcode>
+					<rank>7</rank>
+				</subcommittee>
+				<subcommittee>
+					<subcomcode>JU08</subcomcode>
+					<rank>4</rank>
+				</subcommittee>
+				<subcommittee>
+					<subcomcode>JU13</subcomcode>
+					<rank>2</rank>
+				</subcommittee>
+			</committee-assignments>
+		</member>
+	</members>
+	<committees>
+		<committee>
+			<type>standing</type>
+			<comcode>AG00</comcode>
+			<com-room>1301</com-room>
+			<com-header-text>The chairman and ranking minority member are ex officio members of all subcommittees.</com-header-text>
+			<com-zip>20515</com-zip>
+			<com-zip-suffix>6001</com-zip-suffix>
+			<com-building-code>LHOB</com-building-code>
+			<com-phone>225-2171</com-phone>
+			<committee-fullname>Committee on Agriculture</committee-fullname>
+			<ratio>
+				<majority>29</majority>
+				<minority>25</minority>
+			</ratio>
+			<subcommittee>
+				<subcomcode>AG03</subcomcode>
+				<subcom-room>1301</subcom-room>
+				<subcom-zip>20515</subcom-zip>
+				<subcom-zip-suffix>0</subcom-zip-suffix>
+				<subcom-building-code>LHOB</subcom-building-code>
+				<subcom-phone>225-2171</subcom-phone>
+				<subcommittee-fullname>Nutrition and Foreign Agriculture</subcommittee-fullname>
+				<ratio>
+					<majority>11</majority>
+					<minority>8</minority>
+				</ratio>
+			</subcommittee>
+			<subcommittee>
+				<subcomcode>AG14</subcomcode>
+				<subcom-room>1301</subcom-room>
+				<subcom-zip>20515</subcom-zip>
+				<subcom-zip-suffix>0</subcom-zip-suffix>
+				<subcom-building-code>LHOB</subcom-building-code>
+				<subcom-phone>225-2171</subcom-phone>
+				<subcommittee-fullname>Conservation, Research, and Biotechnology</subcommittee-fullname>
+				<ratio>
+					<majority>10</majority>
+					<minority>9</minority>
+				</ratio>
+			</subcommittee>
+			<subcommittee>
+				<subcomcode>AG15</subcomcode>
+				<subcom-room>1301</subcom-room>
+				<subcom-zip>20515</subcom-zip>
+				<subcom-zip-suffix>0</subcom-zip-suffix>
+				<subcom-building-code>LHOB</subcom-building-code>
+				<subcom-phone>225-2171</subcom-phone>
+				<subcommittee-fullname>Forestry and Horticulture</subcommittee-fullname>
+				<ratio>
+					<majority>7</majority>
+					<minority>6</minority>
+				</ratio>
+			</subcommittee>
+			<subcommittee>
+				<subcomcode>AG16</subcomcode>
+				<subcom-room>1301</subcom-room>
+				<subcom-zip>20515</subcom-zip>
+				<subcom-zip-suffix>0</subcom-zip-suffix>
+				<subcom-building-code>LHOB</subcom-building-code>
+				<subcom-phone>225-2171</subcom-phone>
+				<subcommittee-fullname>General Farm Commodities, Risk Management, and Credit</subcommittee-fullname>
+				<ratio>
+					<majority>14</majority>
+					<minority>7</minority>
+				</ratio>
+			</subcommittee>
+			<subcommittee>
+				<subcomcode>AG22</subcomcode>
+				<subcom-room>1301</subcom-room>
+				<subcom-zip>20515</subcom-zip>
+				<subcom-zip-suffix>0</subcom-zip-suffix>
+				<subcom-building-code>LHOB</subcom-building-code>
+				<subcom-phone>225-2171</subcom-phone>
+				<subcommittee-fullname>Commodity Markets, Digital Assets, and Rural Development</subcommittee-fullname>
+				<ratio>
+					<majority>12</majority>
+					<minority>11</minority>
+				</ratio>
+			</subcommittee>
+			<subcommittee>
+				<subcomcode>AG29</subcomcode>
+				<subcom-room>1301</subcom-room>
+				<subcom-zip>20515</subcom-zip>
+				<subcom-zip-suffix>0</subcom-zip-suffix>
+				<subcom-building-code>LHOB</subcom-building-code>
+				<subcom-phone>225-2171</subcom-phone>
+				<subcommittee-fullname>Livestock, Dairy, and Poultry</subcommittee-fullname>
+				<ratio>
+					<majority>14</majority>
+					<minority>5</minority>
+				</ratio>
+			</subcommittee>
+		</committee>
+		<committee>
+			<type>standing</type>
+			<comcode>AP00</comcode>
+			<com-room>H307</com-room>
+			<com-header-text>The chair and ranking minority member are authorized to sit as members of all subcommittees.</com-header-text>
+			<com-zip>20515</com-zip>
+			<com-zip-suffix>6015</com-zip-suffix>
+			<com-building-code>C</com-building-code>
+			<com-phone>225-2771</com-phone>
+			<committee-fullname>Committee on Appropriations</committee-fullname>
+			<ratio>
+				<majority>35</majority>
+				<minority>28</minority>
+			</ratio>
+			<subcommittee>
+				<subcomcode>AP01</subcomcode>
+				<subcom-room>2362A</subcom-room>
+				<subcom-zip>20515</subcom-zip>
+				<subcom-zip-suffix>0</subcom-zip-suffix>
+				<subcom-building-code>RHOB</subcom-building-code>
+				<subcom-phone>225-2638</subcom-phone>
+				<subcommittee-fullname>Agriculture, Rural Development, Food and Drug Administration, and Related Agencies</subcommittee-fullname>
+				<ratio>
+					<majority>9</majority>
+					<minority>6</minority>
+				</ratio>
+			</subcommittee>
+			<subcommittee>
+				<subcomcode>AP02</subcomcode>
+				<subcom-room>H405</subcom-room>
+				<subcom-zip>20515</subcom-zip>
+				<subcom-zip-suffix>0</subcom-zip-suffix>
+				<subcom-building-code>C</subcom-building-code>
+				<subcom-phone>225-2847</subcom-phone>
+				<subcommittee-fullname>Defense</subcommittee-fullname>
+				<ratio>
+					<majority>10</majority>
+					<minority>7</minority>
+				</ratio>
+			</subcommittee>
+			<subcommittee>
+				<subcomcode>AP04</subcomcode>
+				<subcom-room>HT2</subcom-room>
+				<subcom-zip>20515</subcom-zip>
+				<subcom-zip-suffix>0</subcom-zip-suffix>
+				<subcom-building-code>C</subcom-building-code>
+				<subcom-phone>225-2041</subcom-phone>
+				<subcommittee-fullname>National Security, Department of State, and Related Programs</subcommittee-fullname>
+				<ratio>
+					<majority>7</majority>
+					<minority>4</minority>
+				</ratio>
+			</subcommittee>
+			<subcommittee>
+				<subcomcode>AP06</subcomcode>
+				<subcom-room>2007</subcom-room>
+				<subcom-zip>20515</subcom-zip>
+				<subcom-zip-suffix>0</subcom-zip-suffix>
+				<subcom-building-code>RHOB</subcom-building-code>
+				<subcom-phone>225-3081</subcom-phone>
+				<subcommittee-fullname>Interior, Environment, and Related Agencies</subcommittee-fullname>
+				<ratio>
+					<majority>7</majority>
+					<minority>4</minority>
+				</ratio>
+			</subcommittee>
+			<subcommittee>
+				<subcomcode>AP07</subcomcode>
+				<subcom-room>2358B</subcom-room>
+				<subcom-zip>20515</subcom-zip>
+				<subcom-zip-suffix>0</subcom-zip-suffix>
+				<subcom-building-code>RHOB</subcom-building-code>
+				<subcom-phone>225-3508</subcom-phone>
+				<subcommittee-fullname>Labor, Health and Human Services, Education, and Related Agencies</subcommittee-fullname>
+				<ratio>
+					<majority>10</majority>
+					<minority>7</minority>
+				</ratio>
+			</subcommittee>
+			<subcommittee>
+				<subcomcode>AP10</subcomcode>
+				<subcom-room>2362B</subcom-room>
+				<subcom-zip>20515</subcom-zip>
+				<subcom-zip-suffix>0</subcom-zip-suffix>
+				<subcom-building-code>RHOB</subcom-building-code>
+				<subcom-phone>225-3421</subcom-phone>
+				<subcommittee-fullname>Energy and Water Development and Related Agencies</subcommittee-fullname>
+				<ratio>
+					<majority>9</majority>
+					<minority>6</minority>
+				</ratio>
+			</subcommittee>
+			<subcommittee>
+				<subcomcode>AP15</subcomcode>
+				<subcom-room>2006</subcom-room>
+				<subcom-zip>20515</subcom-zip>
+				<subcom-zip-suffix>0</subcom-zip-suffix>
+				<subcom-building-code>RHOB</subcom-building-code>
+				<subcom-phone>225-5834</subcom-phone>
+				<subcommittee-fullname>Homeland Security</subcommittee-fullname>
+				<ratio>
+					<majority>7</majority>
+					<minority>4</minority>
+				</ratio>
+			</subcommittee>
+			<subcommittee>
+				<subcomcode>AP18</subcomcode>
+				<subcom-room>HT2</subcom-room>
+				<subcom-zip>20515</subcom-zip>
+				<subcom-zip-suffix>0</subcom-zip-suffix>
+				<subcom-building-code>C</subcom-building-code>
+				<subcom-phone>225-3047</subcom-phone>
+				<subcommittee-fullname>Military Construction, Veterans Affairs, and Related Agencies</subcommittee-fullname>
+				<ratio>
+					<majority>8</majority>
+					<minority>5</minority>
+				</ratio>
+			</subcommittee>
+			<subcommittee>
+				<subcomcode>AP19</subcomcode>
+				<subcom-room>H310</subcom-room>
+				<subcom-zip>20515</subcom-zip>
+				<subcom-zip-suffix>0</subcom-zip-suffix>
+				<subcom-building-code>C</subcom-building-code>
+				<subcom-phone>225-3351</subcom-phone>
+				<subcommittee-fullname>Commerce, Justice, Science, and Related Agencies</subcommittee-fullname>
+				<ratio>
+					<majority>8</majority>
+					<minority>5</minority>
+				</ratio>
+			</subcommittee>
+			<subcommittee>
+				<subcomcode>AP20</subcomcode>
+				<subcom-room>2358A</subcom-room>
+				<subcom-zip>20515</subcom-zip>
+				<subcom-zip-suffix>0</subcom-zip-suffix>
+				<subcom-building-code>RHOB</subcom-building-code>
+				<subcom-phone>225-2141</subcom-phone>
+				<subcommittee-fullname>Transportation, Housing and Urban Development, and Related Agencies</subcommittee-fullname>
+				<ratio>
+					<majority>9</majority>
+					<minority>6</minority>
+				</ratio>
+			</subcommittee>
+			<subcommittee>
+				<subcomcode>AP23</subcomcode>
+				<subcom-room>2000</subcom-room>
+				<subcom-zip>20515</subcom-zip>
+				<subcom-zip-suffix>0</subcom-zip-suffix>
+				<subcom-building-code>RHOB</subcom-building-code>
+				<subcom-phone>225-7245</subcom-phone>
+				<subcommittee-fullname>Financial Services and General Government</subcommittee-fullname>
+				<ratio>
+					<majority>8</majority>
+					<minority>5</minority>
+				</ratio>
+			</subcommittee>
+			<subcommittee>
+				<subcomcode>AP24</subcomcode>
+				<subcom-room>HT2</subcom-room>
+				<subcom-zip>20515</subcom-zip>
+				<subcom-zip-suffix>0</subcom-zip-suffix>
+				<subcom-building-code>C</subcom-building-code>
+				<subcom-phone>226-7252</subcom-phone>
+				<subcommittee-fullname>Legislative Branch</subcommittee-fullname>
+				<ratio>
+					<majority>5</majority>
+					<minority>3</minority>
+				</ratio>
+			</subcommittee>
+		</committee>
+	</committees>
+</MemberData>

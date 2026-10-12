@@ -1,0 +1,103 @@
+- type: house
+  name: House Committee on Agriculture
+  url: https://agriculture.house.gov/
+  minority_url: https://republicans-agriculture.house.gov
+  thomas_id: HSAG
+  house_committee_id: AG
+  subcommittees:
+  - name: Forestry and Horticulture
+    thomas_id: '15'
+    address: 1301 LHOB; Washington, DC 20515
+    phone: (202) 225-2171
+  - name: Commodity Markets, Digital Assets, and Rural Development
+    thomas_id: '22'
+    address: 1301 LHOB; Washington, DC 20515
+    phone: (202) 225-2171
+  - name: General Farm Commodities, Risk Management, and Credit
+    thomas_id: '16'
+    address: 1301 LHOB; Washington, DC 20515
+    phone: (202) 225-2171
+  - name: Livestock, Dairy, and Poultry
+    thomas_id: '29'
+    address: 1301 LHOB; Washington, DC 20515
+    phone: (202) 225-2171
+  - name: Conservation, Research, and Biotechnology
+    thomas_id: '14'
+    address: 1301 LHOB; Washington, DC 20515
+    phone: (202) 225-2171
+  - name: Nutrition and Foreign Agriculture
+    thomas_id: '03'
+    address: 1301 LHOB; Washington, DC 20515
+    phone: (202) 225-2171
+  address: 1301 LHOB; Washington, DC 20515-6001
+  phone: (202) 225-2171
+  rss_url: https://agriculture.house.gov/Rss.aspx?GroupID=1
+  jurisdiction: The House Committee on Agriculture has legislative jurisdiction over
+    agriculture, food, rural development, and forestry.
+  youtube_id: UCOWh2WJxPywHIaccDWb8Mvg
+- type: house
+  name: House Committee on Appropriations
+  url: https://appropriations.house.gov/
+  minority_url: https://republicans-appropriations.house.gov/
+  thomas_id: HSAP
+  house_committee_id: AP
+  subcommittees:
+  - name: Agriculture, Rural Development, Food and Drug Administration, and Related
+      Agencies
+    thomas_id: '01'
+    address: 2362A RHOB; Washington, DC 20515
+    phone: (202) 225-2638
+  - name: Commerce, Justice, Science, and Related Agencies
+    thomas_id: '19'
+    address: H310 CAPITOL; Washington, DC 20515
+    phone: (202) 225-3351
+  - name: Defense
+    thomas_id: '02'
+    address: H405 CAPITOL; Washington, DC 20515
+    phone: (202) 225-2847
+  - name: Energy and Water Development and Related Agencies
+    thomas_id: '10'
+    address: 2362B RHOB; Washington, DC 20515
+    phone: (202) 225-3421
+  - name: Financial Services and General Government
+    thomas_id: '23'
+    address: 2000 RHOB; Washington, DC 20515
+    phone: (202) 225-7245
+  - name: Homeland Security
+    thomas_id: '15'
+    address: 2006 RHOB; Washington, DC 20515
+    phone: (202) 225-5834
+  - name: Interior, Environment, and Related Agencies
+    thomas_id: '06'
+    address: 2007 RHOB; Washington, DC 20515
+    phone: (202) 225-3081
+  - name: Labor, Health and Human Services, Education, and Related Agencies
+    thomas_id: '07'
+    address: 2358B RHOB; Washington, DC 20515
+    phone: (202) 225-3508
+  - name: Legislative Branch
+    thomas_id: '24'
+    address: HT2 CAPITOL; Washington, DC 20515
+    phone: (202) 226-7252
+  - name: Military Construction, Veterans Affairs, and Related Agencies
+    thomas_id: '18'
+    address: HT2 CAPITOL; Washington, DC 20515
+    phone: (202) 225-3047
+  - name: National Security, Department of State, and Related Programs
+    thomas_id: '04'
+    address: HT2 CAPITOL; Washington, DC 20515
+    phone: (202) 225-2041
+  - name: Transportation, Housing and Urban Development, and Related Agencies
+    thomas_id: '20'
+    address: 2358A RHOB; Washington, DC 20515
+    phone: (202) 225-2141
+  address: H307 CAPITOL; Washington, DC 20515-6015
+  phone: (202) 225-2771
+  jurisdiction: The House Committee on Appropriations is responsible for legislation
+    allocating federal funds prior to expenditure from the treasury. Appropriations
+    are generally limited to the levels set by the Budget Resolution drafted by the
+    House Committee on the Budget. The Committee is also responsible for supplemental
+    spending bills, which are sometimes needed in the middle of a fiscal year to compensate
+    for emergency expenses.
+  jurisdiction_source: https://appropriations.house.gov/about/
+  youtube_id: UCMaSlF09S0fpoRshS2t_7XA

@@ -1,0 +1,40 @@
+- id:
+    bioguide: B000226
+    govtrack: 401222
+    icpsr: 507
+    wikipedia: Richard Bassett (Delaware politician)
+    wikidata: Q518823
+    google_entity_id: kg:/m/02pz46
+  name:
+    first: Richard
+    last: Bassett
+  bio:
+    birthday: '1745-04-02'
+    gender: M
+  terms:
+  - type: sen
+    start: '1789-03-04'
+    end: '1793-03-03'
+    state: DE
+    class: 2
+    party: Anti-Administration
+- id:
+    bioguide: B000546
+    govtrack: 401521
+    icpsr: 786
+    house_history: 9479
+    wikipedia: Theodorick Bland (congressman)
+    wikidata: Q1749152
+    google_entity_id: kg:/m/033mf4
+  name:
+    first: Theodorick
+    last: Bland
+  bio:
+    birthday: '1742-03-21'
+    gender: M
+  terms:
+  - type: rep
+    start: '1789-03-04'
+    end: '1790-06-01'
+    state: VA
+    district: 9

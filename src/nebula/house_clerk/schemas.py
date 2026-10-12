@@ -8,15 +8,16 @@ from datetime import datetime
 from typing import Any, cast
 
 import xmltodict
-from pydantic import Field, computed_field
+from pydantic import Field
 
+from nebula.house_clerk.member_model import ClerkData
+from nebula.house_clerk.parsers import HouseMemberParser
+from nebula.schemas import APIServiceResponse
 from nebula.typings import (
     RecordedVote,
     RollCallDict,
     VoteMeta,
 )
-from nebula.house_clerk.member_model import ClerkData
-from nebula.schemas import APIServiceResponse
 
 
 class HouseClerkResponse(APIServiceResponse):
@@ -31,7 +32,6 @@ class HouseClerkResponse(APIServiceResponse):
         XML response content parsed into a dictionary.
     """
 
-    @computed_field  # type: ignore[prop-decorator]
     @property
     def data(self) -> dict:
         """Return parsed XML content as a Python dictionary.
@@ -67,7 +67,6 @@ class ClerkMemberInfoResponse(HouseClerkResponse):
     Parses the member roster XML using the `ClerkData` model.
     """
 
-    @computed_field  # type: ignore[prop-decorator]
     @property
     def parsed_data(self) -> ClerkData:
         """Return structured Clerk member data parsed from XML.
@@ -78,7 +77,9 @@ class ClerkMemberInfoResponse(HouseClerkResponse):
             Validated model of the Clerk-provided member dataset.
         """
         if self._parsed_data is None:
-            self._parsed_data = ClerkData.model_validate(self.data)
+            self._parsed_data = HouseMemberParser().parse(
+                (self.text or "").encode()
+            )
         return cast(ClerkData, self._parsed_data)
 
     @parsed_data.setter
@@ -100,7 +101,6 @@ class ClerkRollCallResponse(HouseClerkResponse):
 
     year: int = Field(..., description="Legislative year")
 
-    @computed_field  # type: ignore[prop-decorator]
     @property
     def parsed_data(self) -> RollCallDict:
         """Return full roll call vote metadata and votes.
