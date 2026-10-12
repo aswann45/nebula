@@ -34,6 +34,7 @@ class TitleInfo(BaseModel):
         Clerk of the House.
     weburl : str
         Official Clerk site URL.
+
     """
 
     model_config = ConfigDict(
@@ -57,6 +58,7 @@ class State(BaseModel):
         Two-letter postal abbreviation.
     state_fullname : str
         Full state name (e.g., "Virginia").
+
     """
 
     model_config = ConfigDict(
@@ -80,6 +82,7 @@ class ElectedDate(BaseModel):
     -------------------
     parsed_date : datetime or None
         Parsed datetime object if format is valid.
+
     """
 
     model_config = ConfigDict(
@@ -102,6 +105,7 @@ class ElectedDate(BaseModel):
         datetime or None
             Parsed `datetime` representation of the election date, or `None`
             if the input string is invalid.
+
         """
         try:
             return datetime.strptime(self.date, "%Y%m%d")  # Member date format
@@ -145,6 +149,7 @@ class MemberInfoBase(BaseModel):
     sworn_date : datetime or None
     state_postal_code : str
     state_fullname : str
+
     """
 
     model_config = ConfigDict(
@@ -189,6 +194,7 @@ class MemberInfoBase(BaseModel):
         -------
         datetime or None
             Parsed election date, or `None` if parsing fails.
+
         """
         return self.elected_date_data.parsed_date
 
@@ -204,6 +210,7 @@ class MemberInfoBase(BaseModel):
         -------
         datetime or None
             Parsed swearing-in date, or `None` if invalid.
+
         """
         return self.sworn_date_data.parsed_date
 
@@ -216,6 +223,7 @@ class MemberInfoBase(BaseModel):
         -------
         str
             State postal abbreviation (e.g., "CA", "TX").
+
         """
         return self.state.postal_code
 
@@ -228,6 +236,7 @@ class MemberInfoBase(BaseModel):
         -------
         str
             Full state name (e.g., "California", "Texas").
+
         """
         return self.state.state_fullname
 
@@ -239,6 +248,7 @@ class MemberInfo(MemberInfoBase):
     ----------
     state_district : str
         Composite field (e.g., "NY12").
+
     """
 
     state_district: str
@@ -258,6 +268,7 @@ class CommitteeItem(BaseModel):
         Rank or seniority within the committee.
     leadership : str, optional
         Leadership title (e.g., "Chair", "Ranking Member"), if applicable.
+
     """
 
     model_config = ConfigDict(
@@ -285,6 +296,7 @@ class CommitteeAssignment(BaseModel):
     parsed_rank : int
     chamber_id : str
     parsed_leadership : str or None
+
     """
 
     model_config = ConfigDict(
@@ -308,6 +320,7 @@ class CommitteeAssignment(BaseModel):
         int
             Parsed rank as an integer. Returns 0 if `rank_str` is empty or
             null.
+
         """
         if self.rank_str == "":
             return 0
@@ -328,6 +341,7 @@ class CommitteeAssignment(BaseModel):
         -------
         str
             Committee ID string (or empty string if `comcode` is missing).
+
         """
         return self.comcode or ""
 
@@ -343,6 +357,7 @@ class CommitteeAssignment(BaseModel):
         -------
         str or None
             Explicit or inferred leadership role, or `None` if not applicable.
+
         """
         if self.leadership is not None:
             return self.leadership
@@ -369,6 +384,7 @@ class SubcommitteeAssignment(BaseModel):
     parsed_rank : int
     chamber_id : str
     parsed_leadership : str or None
+
     """
 
     model_config = ConfigDict(
@@ -391,6 +407,7 @@ class SubcommitteeAssignment(BaseModel):
         -------
         int
             Parsed rank as an integer, or 0 if `rank_str` is empty or None.
+
         """
         if self.rank_str == "":
             return 0
@@ -411,6 +428,7 @@ class SubcommitteeAssignment(BaseModel):
         -------
         str
             Subcommittee code or empty string if not set.
+
         """
         return self.subcomcode or ""
 
@@ -426,6 +444,7 @@ class SubcommitteeAssignment(BaseModel):
         -------
         str or None
             Leadership role name (explicit or inferred), or `None`.
+
         """
         if self.leadership is not None:
             return self.leadership
@@ -453,6 +472,7 @@ class CommitteeAssignments(BaseModel):
     all_assignments : list[CommitteeAssignment | SubcommitteeAssignment]
         Flattened list containing all assignment objects, including both
         full committee and subcommittee memberships.
+
     """
 
     model_config = ConfigDict(
@@ -478,6 +498,7 @@ class CommitteeAssignments(BaseModel):
         -------
         list[CommitteeAssignment or SubcommitteeAssignment]
             Combined assignments for a Member.
+
         """
         data: list[CommitteeAssignment | SubcommitteeAssignment] = []
         if isinstance(self.committee, CommitteeAssignment):
@@ -518,6 +539,7 @@ class PredecessorInfoBase(BaseModel):
     -------------------
     vacate_date : datetime or None
     namelist : str
+
     """
 
     model_config = ConfigDict(
@@ -552,6 +574,7 @@ class PredecessorInfoBase(BaseModel):
         -------
         datetime or None
             Parsed vacate date, or None if the value is invalid.
+
         """
         return self.vacate_date_data.parsed_date
 
@@ -566,6 +589,7 @@ class PredecessorInfoBase(BaseModel):
         -------
         str
             Formatted full name for display.
+
         """
         if self.middlename is not None:
             return f"{self.lastname}, {self.firstname} {self.middlename}"
@@ -582,6 +606,7 @@ class PredecessorInfo(PredecessorInfoBase):
     state_postal_code : str
     state_fullname : str
     district : str
+
     """
 
     state_district: str
@@ -613,6 +638,7 @@ class MemberItem(BaseModel):
     parsed_predecessor_info : PredecessorInfo or None
     bioguide_id : str
         Fallback-resilient unique identifier resolution.
+
     """
 
     model_config = ConfigDict(
@@ -638,6 +664,7 @@ class MemberItem(BaseModel):
         -------
         MemberInfo
             Parsed and validated model instance for the Member.
+
         """
         base_info = self.member_info.model_dump(by_alias=True)
         base_info["state_district"] = self.state_district
@@ -655,6 +682,7 @@ class MemberItem(BaseModel):
         -------
         PredecessorInfo or None
             Structured predecessor data, or None if not present.
+
         """
         if self.predecessor_info is None:
             return None
@@ -683,6 +711,7 @@ class MemberItem(BaseModel):
         ------
         AssertionError
             If no valid bioguide ID can be determined.
+
         """
         if self.parsed_member_info.bioguide_id is not None:
             return self.parsed_member_info.bioguide_id
@@ -710,6 +739,7 @@ class Members(BaseModel):
     member : Sequence[MemberItem]
         List of structured `MemberItem` objects, one per
         district or seat.
+
     """
 
     model_config = ConfigDict(
@@ -727,6 +757,7 @@ class Ratio(BaseModel):
         Number of majority party members assigned.
     minority : int
         Number of minority party members assigned.
+
     """
 
     model_config = ConfigDict(
@@ -753,6 +784,7 @@ class Subcommittee(BaseModel):
     minority : int
     chamber_id : str
     thomas_id_prefix : str
+
     """
 
     model_config = ConfigDict(
@@ -778,6 +810,7 @@ class Subcommittee(BaseModel):
         -------
         int
             Majority count from the subcommittee's ratio block.
+
         """
         return self.ratio.majority
 
@@ -790,6 +823,7 @@ class Subcommittee(BaseModel):
         -------
         int
             Minority count from the ratio field.
+
         """
         return self.ratio.minority
 
@@ -802,6 +836,7 @@ class Subcommittee(BaseModel):
         -------
         str
             Chamber-level prefix (e.g., 'HS').
+
         """
         return self.subcomcode[:2]
 
@@ -814,6 +849,7 @@ class Subcommittee(BaseModel):
         -------
         str
             Identifier for the subcommittee excluding prefix.
+
         """
         return self.subcomcode[2:]
 
@@ -828,6 +864,7 @@ class Subcommittee(BaseModel):
         -------
         str
             Legacy-compatible prefix for THOMAS datasets.
+
         """
         return "HS" + self.chamber_id_prefix
 
@@ -842,6 +879,7 @@ class Subcommittee(BaseModel):
         -------
         str
             Unique subcommittee ID string.
+
         """
         return self.chamber_id_prefix + self.id_number
 
@@ -863,6 +901,7 @@ class Committee(BaseModel):
     minority : int
     chamber_id : str
     thomas_id_prefix : str
+
     """
 
     model_config = ConfigDict(
@@ -893,6 +932,7 @@ class Committee(BaseModel):
         -------
         int
             Count of majority members.
+
         """
         return self.ratio.majority
 
@@ -907,6 +947,7 @@ class Committee(BaseModel):
         -------
         int
             Count of minority members.
+
         """
         return self.ratio.minority
 
@@ -921,6 +962,7 @@ class Committee(BaseModel):
         -------
         str
             Prefix identifying the chamber (e.g., 'HS', 'SS').
+
         """
         return self.comcode[:2]
 
@@ -935,6 +977,7 @@ class Committee(BaseModel):
         -------
         str
             Code representing the committee's numeric ID.
+
         """
         return self.comcode[2:]
 
@@ -949,6 +992,7 @@ class Committee(BaseModel):
         -------
         str
             Static prefix for integration with legacy systems.
+
         """
         return "HS" + self.chamber_id_prefix
 
@@ -963,6 +1007,7 @@ class Committee(BaseModel):
         -------
         str
             Combined identifier for this committee.
+
         """
         return self.chamber_id_prefix + self.id_number
 
@@ -985,6 +1030,7 @@ class Committees(BaseModel):
         Flattened list containing both full committees and nested
         subcommittees. Useful for indexing or joining with
         member assignments.
+
     """
 
     model_config = ConfigDict(
@@ -1007,6 +1053,7 @@ class Committees(BaseModel):
         -------
         list[Committee or Subcommittee]
             Combined list of committees and subcommittees.
+
         """
         data: list[Committee | Subcommittee] = []
         for c in self.committee:
@@ -1030,6 +1077,7 @@ class MemberData(BaseModel):
         Member roster by district.
     committees : Committees
         Committees and subcommittees metadata.
+
     """
 
     model_config = ConfigDict(
@@ -1050,6 +1098,7 @@ class ClerkData(BaseModel):
     ----------
     data : MemberData
         Member + committee + header metadata block.
+
     """
 
     model_config = ConfigDict(

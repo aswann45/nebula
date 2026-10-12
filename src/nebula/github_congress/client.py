@@ -39,6 +39,7 @@ class GitHubCongressClient(BaseClient):
     ----------
     BASE_URL : str
         Base path to the GitHub-hosted static files.
+
     """
 
     BASE_URL = (
@@ -94,6 +95,7 @@ class GitHubCongressClient(BaseClient):
         -------
         GHCCurrentMemberResponse
             Structured response containing current member metadata.
+
         """
         async with self._client as client:
             response: Response = await self._perform_request(
@@ -128,6 +130,7 @@ class GitHubCongressClient(BaseClient):
         -------
         GHCCurrentCommitteeResponse
             Structured response for current committee metadata.
+
         """
         async with self._client as client:
             response: Response = await self._perform_request(
@@ -165,6 +168,7 @@ class GitHubCongressClient(BaseClient):
         -------
         GHCHistoricalMemberResponse
             Parsed response model filtered by the `year` argument.
+
         """
         async with self._client as client:
             response: Response = await self._perform_request(

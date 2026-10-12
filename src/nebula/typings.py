@@ -2,6 +2,7 @@ from typing import Any, TypedDict
 
 MemberInfoDict = dict[str, Any]
 
+
 class RollCallYears(TypedDict):
     """Helper structure for year + roll call numbers."""
 
@@ -20,6 +21,7 @@ class RollCallRequestParams(TypedDict):
 
     year: str | int
     roll_call_number: str | int
+
 
 RollCallDict = dict[str, Any]
 """Generic roll call vote record."""

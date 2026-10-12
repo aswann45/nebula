@@ -28,6 +28,7 @@ class CongressGovResponse(APIServiceResponse):
     ------
     ValueError
         If no response JSON is present in the API response.
+
     """
 
     @property
@@ -45,6 +46,7 @@ class CongressGovResponse(APIServiceResponse):
         ------
         ValueError
             If `response_json` is missing.
+
         """
         if self._data is None:
             if self.response_json is None:
@@ -60,6 +62,7 @@ class CongressGovResponse(APIServiceResponse):
         ----------
         value : dict
             Dictionary representing raw response content.
+
         """
         self._data = value
 
@@ -87,6 +90,7 @@ class CongressGovMemberResponse(CongressGovResponse):
         ------
         ValidationError
             If response JSON cannot be validated.
+
         """
         if self._parsed_data is None:
             content = (
@@ -105,5 +109,6 @@ class CongressGovMemberResponse(CongressGovResponse):
         ----------
         value : Any
             Must be a `Member` instance or compatible object.
+
         """
         self._parsed_data = value

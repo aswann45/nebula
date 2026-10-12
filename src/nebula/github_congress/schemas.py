@@ -24,6 +24,7 @@ class HistoricalMemberIDData(BaseModel):
     ----------
     bioguide : str
         Bioguide ID (primary unique identifier).
+
     """
 
     bioguide: str = Field(...)
@@ -44,6 +45,7 @@ class HistoricalMemberNameData(BaseModel):
         Official full name.
     suffix : str, optional
         Name suffix (e.g., Jr., III).
+
     """
 
     first: str = Field(...)
@@ -78,6 +80,7 @@ class HistoricalMemberTermData(BaseModel):
         Office room/building.
     url : str, optional
         Member's website.
+
     """
 
     type_: str = Field(..., alias="type")
@@ -105,6 +108,7 @@ class HistoricalMemberData(BaseModel):
         List of terms served.
     active : bool
         Whether the member is currently serving.
+
     """
 
     id_: HistoricalMemberIDData = Field(..., alias="id")
@@ -242,6 +246,7 @@ class GitHubCongressResponse(APIServiceResponse):
     ------
     ValueError
         If `text` is missing.
+
     """
 
     @property
@@ -261,6 +266,7 @@ class GitHubCongressResponse(APIServiceResponse):
         ------
         ValueError
             If `text` is missing from the response and parsing cannot proceed.
+
         """
         if self._data is None:
             if self.text is None:
@@ -276,6 +282,7 @@ class GitHubCongressResponse(APIServiceResponse):
         ----------
         value : dict
             Pre-parsed YAML data to assign to the response.
+
         """
         self._data = value
 
@@ -290,6 +297,7 @@ class GHCCurrentMemberResponse(GitHubCongressResponse):
     ----------
     parsed_data : list[MemberInfoDict]
         Processed member data.
+
     """
 
     @property
@@ -304,6 +312,7 @@ class GHCCurrentMemberResponse(GitHubCongressResponse):
         -------
         list[MemberInfoDict]
             Structured data for currently serving Members.
+
         """
         if self._parsed_data is None:
             self._parsed_data = self.parse_member_data()
@@ -317,6 +326,7 @@ class GHCCurrentMemberResponse(GitHubCongressResponse):
         ----------
         value : list[MemberInfoDict]
             Pre-parsed list of member dictionaries.
+
         """
         self._parsed_data = value
 
@@ -332,6 +342,7 @@ class GHCCurrentMemberResponse(GitHubCongressResponse):
         -------
         MemberInfoDict or None
             Structured member info or None if no valid data found.
+
         """
         res = {}
         if (
@@ -381,6 +392,7 @@ class GHCCurrentMemberResponse(GitHubCongressResponse):
         -------
         list[MemberInfoDict]
             Parsed current member entries.
+
         """
         return [
             member
@@ -396,6 +408,7 @@ class GHCCurrentCommitteeResponse(GitHubCongressResponse):
     ----------
     parsed_data : list[GitHubCommittee]
         Validated committee records.
+
     """
 
     @property
@@ -423,6 +436,7 @@ class GHCHistoricalMemberResponse(GitHubCongressResponse):
         Filter year for returned members.
     parsed_data : list[HistoricalMemberData]
         List of member records with service extending through `year`.
+
     """
 
     year: str | int = Field(...)
@@ -439,6 +453,7 @@ class GHCHistoricalMemberResponse(GitHubCongressResponse):
         -------
         list[HistoricalMemberData]
             List of historical Members active during or after the filter year.
+
         """
         if self._parsed_data is None:
             self._parsed_data = self.parse_member_data(self.year)
@@ -452,6 +467,7 @@ class GHCHistoricalMemberResponse(GitHubCongressResponse):
         ----------
         value : list[MemberInfoDict]
             Pre-parsed list of member records (must match expected shape).
+
         """
         self._parsed_data = value
 
@@ -467,6 +483,7 @@ class GHCHistoricalMemberResponse(GitHubCongressResponse):
         -------
         list[HistoricalMemberData]
             Member records matching the year threshold.
+
         """
         data = [HistoricalMemberData.model_validate(m) for m in self.data]
         return [

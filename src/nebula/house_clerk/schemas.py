@@ -30,6 +30,7 @@ class HouseClerkResponse(APIServiceResponse):
     ----------
     data : dict
         XML response content parsed into a dictionary.
+
     """
 
     @property
@@ -47,6 +48,7 @@ class HouseClerkResponse(APIServiceResponse):
         ------
         ValueError
             If no response text is available.
+
         """
         if self._data is None:
             if self.text is None:
@@ -75,6 +77,7 @@ class ClerkMemberInfoResponse(HouseClerkResponse):
         -------
         ClerkData
             Validated model of the Clerk-provided member dataset.
+
         """
         if self._parsed_data is None:
             self._parsed_data = HouseMemberParser().parse(
@@ -97,6 +100,7 @@ class ClerkRollCallResponse(HouseClerkResponse):
     ----------
     year : int
         Legislative year associated with the roll call vote.
+
     """
 
     year: int = Field(..., description="Legislative year")
@@ -112,6 +116,7 @@ class ClerkRollCallResponse(HouseClerkResponse):
         -------
         RollCallDict
             Dictionary with `vote_meta`, `year`, and `votes` keys.
+
         """
         if self._parsed_data is None:
             self._parsed_data = {}
@@ -148,6 +153,7 @@ class ClerkRollCallResponse(HouseClerkResponse):
         ------
         KeyError
             If required keys are missing from the XML payload.
+
         """
         try:
             _vote_meta = self.data["rollcall-vote"]["vote-metadata"]
@@ -190,6 +196,7 @@ class ClerkRollCallResponse(HouseClerkResponse):
         ------
         KeyError
             If expected keys are missing from the vote dictionary.
+
         """
         try:
             _vote = vote_dict["legislator"]

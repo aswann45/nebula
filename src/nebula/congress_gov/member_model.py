@@ -28,6 +28,7 @@ class AddressInformation(BaseModel):
         Office phone number.
     zip_code : int, optional
         Postal zip code.
+
     """
 
     model_config = ConfigDict(
@@ -53,6 +54,7 @@ class CosponsoredLegislation(BaseModel):
         Total number of bills cosponsored by the Member.
     url : str
         Link to full cosponsorship list on Congress.gov.
+
     """
 
     model_config = ConfigDict(
@@ -71,6 +73,7 @@ class Depiction(BaseModel):
         Source or copyright info for the image.
     image_url : str
         Direct URL to the image.
+
     """
 
     model_config = ConfigDict(
@@ -91,6 +94,7 @@ class LeadershipItem(BaseModel):
         Role title or type (e.g., "Chair", "Ranking Member").
     current : bool, optional
         Whether the Member currently holds this role.
+
     """
 
     model_config = ConfigDict(
@@ -112,6 +116,7 @@ class PartyHistoryItem(BaseModel):
         Full name of the party (e.g., "Democrat").
     start_year : int
         Year this party affiliation began.
+
     """
 
     model_config = ConfigDict(
@@ -152,6 +157,7 @@ class Term(BaseModel):
         Two-letter postal abbreviation (e.g., "NY").
     state_name : str
         Full name of the state (e.g., "New York").
+
     """
 
     model_config = ConfigDict(
@@ -210,6 +216,7 @@ class Member(BaseModel):
         Link to the Member's official website.
     address_information : AddressInformation, optional
         Office location and contact info.
+
     """
 
     model_config = ConfigDict(
@@ -259,6 +266,7 @@ class Request(BaseModel):
         Response content type requested (e.g., "json").
     format : str
         Format string requested in the API call (e.g., "json").
+
     """
 
     model_config = ConfigDict(
@@ -278,6 +286,7 @@ class MemberResponseModel(BaseModel):
         Parsed member data.
     request : Request
         Metadata about the original API call.
+
     """
 
     model_config = ConfigDict(

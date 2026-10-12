@@ -31,6 +31,7 @@ class SenateClerkClient(BaseClient):
     ----------
     BASE_URL : str
         Root domain for all Clerk-related API requests.
+
     """
 
     BASE_URL = "https://www.senate.gov"
@@ -62,6 +63,7 @@ class SenateClerkClient(BaseClient):
         -------
         ClerkSenatorInfoResponse
             Parsed and validated member roster data.
+
         """
         async with self._client as client:
             response: Response = await self._perform_request(

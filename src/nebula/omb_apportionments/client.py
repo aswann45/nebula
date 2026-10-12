@@ -40,6 +40,7 @@ class OMBApportionmentsClient(BaseClient):
     ----------
     BASE_URL : str
         Root URL hosting apportionment files.
+
     """
 
     BASE_URL: str = "https://apportionment-public.max.gov/"
@@ -96,6 +97,7 @@ class OMBApportionmentsClient(BaseClient):
         -------
         OMBApportionmentsPageResponse or None
             Parsed HTML wrapper, or None on failure.
+
         """
         try:
             response: Response = await self._perform_request(
@@ -143,6 +145,7 @@ class OMBApportionmentsClient(BaseClient):
         -------
         OMBSingleApportionmentResponse or None
             Parsed JSON response wrapper, or None on failure.
+
         """
         try:
             response: Response = await self._perform_request(
@@ -178,6 +181,7 @@ class OMBApportionmentsClient(BaseClient):
         -------
         list[OMBSingleApportionmentResponse or None]
             List of parsed apportionment files (or None if missing).
+
         """
         async with self._client as client:
             page = await self._get_apportionments_page(client)

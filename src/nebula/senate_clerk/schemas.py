@@ -23,6 +23,7 @@ class SenateClerkResponse(APIServiceResponse):
     ----------
     data : dict
         Parsed XML response body as a dictionary.
+
     """
 
     @property
@@ -41,6 +42,7 @@ class SenateClerkResponse(APIServiceResponse):
         ------
         ValueError
             If no response text is available to parse.
+
         """
         if self._data is None:
             if self.text is None:
@@ -71,6 +73,7 @@ class ClerkSenatorInfoResponse(SenateClerkResponse):
         -------
         ClerkData
             Structured object representing the full Senate membership.
+
         """
         if self._parsed_data is None:
             self._parsed_data = SenateMemberParser().parse(

@@ -23,6 +23,7 @@ class LastUpdate(BaseModel):
         Date in YYYY-MM-DD format.
     time : str
         Time in HH:MM:SS format.
+
     """
 
     model_config = ConfigDict(
@@ -45,6 +46,7 @@ class Name(BaseModel):
         Last name.
     suffix : str, optional
         Name suffix (e.g., "Jr.", "III").
+
     """
 
     model_config = ConfigDict(
@@ -71,6 +73,7 @@ class CommitteeItem(BaseModel):
         Inferred or mapped leadership role.
     type : str
         Static literal string, always set to 'Committee'.
+
     """
 
     model_config = ConfigDict(
@@ -93,6 +96,7 @@ class CommitteeItem(BaseModel):
         -------
         str
             Committee-specific identifier string.
+
         """
         return self.code[2:]
 
@@ -107,6 +111,7 @@ class CommitteeItem(BaseModel):
         -------
         int
             Inferred rank value.
+
         """
         if self.parsed_leadership is not None:
             return 1
@@ -121,6 +126,7 @@ class CommitteeAssignments(BaseModel):
     ----------
     committee : list[CommitteeItem]
         List of committees the Senator serves on.
+
     """
 
     model_config = ConfigDict(
@@ -139,6 +145,7 @@ class CommitteeAssignments(BaseModel):
         -------
         list[CommitteeItem]
             Full committee assignment list.
+
         """
         return self.committee
 
@@ -172,6 +179,7 @@ class SenatorItem(BaseModel):
         Chamber-wide leadership role (e.g., "Majority Leader").
     chamber : str
         Always "Senate".
+
     """
 
     model_config = ConfigDict(
@@ -239,7 +247,9 @@ class SenatorItem(BaseModel):
         try:
             return us.states.lookup(self.state_postal_code).name  # type: ignore[union-attr]
         except AttributeError as ae:
-            raise ValueError(f"Could not resolve state name from {self.state_postal_code}") from ae
+            raise ValueError(
+                f"Could not resolve state name from {self.state_postal_code}"
+            ) from ae
 
     town_name: Annotated[str, Field(alias="homeTown")]
     state_rank: Annotated[str, Field(alias="stateRank")]
@@ -274,6 +284,7 @@ class Senators(BaseModel):
         Timestamp of last data refresh.
     member : list[SenatorItem]
         List of currently serving Senators.
+
     """
 
     model_config = ConfigDict(
@@ -290,6 +301,7 @@ class SenatorsData(BaseModel):
     ----------
     members : Senators
         Wrapped list of Senators and update metadata.
+
     """
 
     members: Senators
@@ -302,6 +314,7 @@ class ClerkData(BaseModel):
     ----------
     senators : Senators
         Full Senate membership block.
+
     """
 
     model_config = ConfigDict(
@@ -318,5 +331,6 @@ class ClerkData(BaseModel):
         -------
         SenatorsData
             Root object containing Senators and metadata.
+
         """
         return SenatorsData(members=self.senators)

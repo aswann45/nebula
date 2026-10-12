@@ -36,6 +36,7 @@ class OMBApportionmentsPageResponse(APIServiceResponse):
         ------
         ValueError
             If the HTML response body is missing.
+
         """
         if self._data is None:
             if self.text is None:
@@ -61,6 +62,7 @@ class OMBApportionmentsPageResponse(APIServiceResponse):
         -------
         list[Tag]
             List of anchor tags pointing to apportionment JSON files.
+
         """
         if self._parsed_data is None:
             self._parsed_data = self.data.find_all(href=re.compile(r".json$"))
@@ -86,6 +88,7 @@ class OMBSingleApportionmentResponse(APIServiceResponse):
     ----------
     snake_case_pattern : re.Pattern
         Regex used to convert CamelCase fields to snake_case.
+
     """
 
     snake_case_pattern: re.Pattern = re.compile(r"(?<!^)(?=[A-Z])")
@@ -103,6 +106,7 @@ class OMBSingleApportionmentResponse(APIServiceResponse):
         ------
         ValueError
             If the response body is missing or invalid.
+
         """
         if self._data is None:
             if self.text is None:
@@ -127,6 +131,7 @@ class OMBSingleApportionmentResponse(APIServiceResponse):
         -------
         dict
             Fully structured apportionment dataset.
+
         """
         if self._parsed_data is None:
             self._parsed_data = self.parse_apportionment_info(self.data)
@@ -150,6 +155,7 @@ class OMBSingleApportionmentResponse(APIServiceResponse):
         -------
         datetime or None
             Parsed `datetime` object or None if parsing fails.
+
         """
         try:
             return datetime.strptime(date, "%Y-%m-%d-%H.%M.%S.%f")
@@ -170,6 +176,7 @@ class OMBSingleApportionmentResponse(APIServiceResponse):
         -------
         dict
             Normalized and enriched representation of the apportionment.
+
         """
         data = {
             "file_id": apportionment_dict["FileId"],
@@ -207,6 +214,7 @@ class OMBSingleApportionmentResponse(APIServiceResponse):
         -------
         dict
             Normalized schedule row.
+
         """
         data = {}
         fields = [
@@ -277,6 +285,7 @@ class OMBSingleApportionmentResponse(APIServiceResponse):
         -------
         dict
             Dictionary with `footnote_number` and `footnote_text`.
+
         """
         data = {
             "footnote_number": footnote_dict.get("FootnoteNumber"),

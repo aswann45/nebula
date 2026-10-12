@@ -39,6 +39,7 @@ class CongressGovClient(BaseClient):
         Full base URL including API version.
     API_KEY : str
         API key used for authentication (from app settings).
+
     """
 
     API_VERSION = "v3"
@@ -61,6 +62,7 @@ class CongressGovClient(BaseClient):
         ------
         ConfigurationError
             If no API key is configured.
+
         """
         key = kwargs.get("API_KEY")
         if key is None:
@@ -117,6 +119,7 @@ class CongressGovClient(BaseClient):
         -------
         CongressGovMemberResponse
             Parsed and enriched API response for the Member.
+
         """
         response: Response = await self._perform_request(
             client,
@@ -159,6 +162,7 @@ class CongressGovClient(BaseClient):
         -------
         dict[str, Member]
             Mapping of bioguide ID to parsed `Member` instance.
+
         """
         async with self._client as client:
             tasks = [

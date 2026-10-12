@@ -49,6 +49,7 @@ class APIServiceResponse(BaseModel):
         Raw parsed data extracted from `response_json`.
     parsed_data : Any
         Additional processed data (e.g., model or DTO).
+
     """
 
     url: str = Field(..., description="The URL of the response")
@@ -91,6 +92,7 @@ class APIServiceResponse(BaseModel):
         ------
         NotImplementedError
             If the property is accessed on the base class directly.
+
         """
         raise NotImplementedError
 
@@ -105,6 +107,7 @@ class APIServiceResponse(BaseModel):
         ----------
         value : Any
             Structured data to store (e.g., dict, list, or model instance).
+
         """
         raise NotImplementedError
 
@@ -137,6 +140,7 @@ class APIServiceResponse(BaseModel):
         ------
         NotImplementedError
             If accessed on the base class without subclass override.
+
         """
         raise NotImplementedError
 
@@ -151,6 +155,7 @@ class APIServiceResponse(BaseModel):
         ----------
         value : Any
             Enriched or transformed response object.
+
         """
         raise NotImplementedError
 
@@ -164,6 +169,7 @@ class BaseClientError(RequestError):
         Human-readable error message.
     response : Response, optional
         Optional reference to the HTTPX `Response` object.
+
     """
 
     def __init__(self, message: str, response: Response | None = None):
@@ -185,6 +191,7 @@ async def raise_on_4xx_5xx(response: Response) -> None:
     ------
     HTTPStatusError
         If response status code is 400 or above.
+
     """
     await response.aread()
     response.raise_for_status()
@@ -214,6 +221,7 @@ class BaseClient:
     ------
     ConfigurationError
         If `BASE_URL` is not provided at initialization.
+
     """
 
     BASE_URL: str | None = None
@@ -316,6 +324,7 @@ class BaseClient:
         ------
         BASE_ERROR
             If the response has a 4xx or 5xx status.
+
         """
         url = (
             path
