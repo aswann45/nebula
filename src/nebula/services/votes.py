@@ -4,6 +4,8 @@ from collections.abc import Awaitable, Callable
 
 from nebula.house_clerk.client import HouseClerkClient
 from nebula.house_clerk.models import HouseRollCall
+from nebula.house_clerk.parsers import HouseRollCallParser
+from nebula.typings import RollCallRequestParams
 
 
 class VoteService:
@@ -26,3 +28,24 @@ class VoteService:
         """Read the maximum roll call listed for a House voting year."""
         client = await self._house()
         return await client.get_max_roll_call_number(year)
+
+    async def house_year(self, year: int | str) -> list[HouseRollCall]:
+        """Retrieve known House rolls for a year with bounded concurrency.
+
+        Missing roll files are skipped. The source client's batch method
+        limits active requests, and every number through the listed maximum
+        is checked so gaps do not stop retrieval.
+        """
+        client = await self._house()
+        maximum = await client.get_max_roll_call_number(year)
+        requests: list[RollCallRequestParams] = [
+            {"year": year, "roll_call_number": number}
+            for number in range(1, maximum + 1)
+        ]
+        responses = await client.get_roll_call_vote_data(requests)
+        parser = HouseRollCallParser()
+        return [
+            parser.parse(response.text.encode())
+            for response in responses
+            if response is not None and response.text is not None
+        ]

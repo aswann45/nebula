@@ -32,7 +32,9 @@ class ApportionmentService:
         client = await self._omb()
         return await client.get_apportionment_model(url)
 
-    async def collect(self) -> builtins.list[OMBApportionment]:
+    async def collect(
+        self, fiscal_year: int | None = None
+    ) -> builtins.list[OMBApportionment]:
         """Retrieve all listed records using the client's bounded workers.
 
         Returns
@@ -45,8 +47,13 @@ class ApportionmentService:
         client = await self._omb()
         responses = await client.get_apportionments_data()
         parser = OMBApportionmentParser()
-        return [
+        records = [
             parser.parse(response.text.encode())
             for response in responses
             if response is not None and response.text is not None
+        ]
+        return [
+            record
+            for record in records
+            if fiscal_year is None or record.fiscal_year == fiscal_year
         ]

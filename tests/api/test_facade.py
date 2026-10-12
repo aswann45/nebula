@@ -133,6 +133,7 @@ def test_omb_service_discovery_and_retrieval() -> None:
             assert await nebula.apportionments.get("/missing.json") is None
             collected = await nebula.apportionments.collect()
             assert [item.file_id for item in collected] == [11547886]
+            assert await nebula.apportionments.collect(2026) == []
         await http.aclose()
 
     asyncio.run(run())

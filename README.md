@@ -34,6 +34,54 @@ existing bounded source retrieval. It omits missing files and raises on
 other source failures. Legislation has no supported retrieval operation yet;
 the current Congress.gov bill and amendment methods remain unimplemented.
 
+## Command-line interface
+
+Installing the package creates the `nebula` command. The CLI uses the same
+domain services as the Python API:
+
+```bash
+nebula --help
+nebula --version
+nebula sources list --format json
+nebula sources status
+nebula sources status --check
+nebula config show
+nebula config validate
+nebula members get B000490 --format json
+nebula members list --chamber house --format jsonl
+nebula members historical --year 2020
+nebula members house-current
+nebula members senate-current
+nebula committees current
+nebula votes house --year 2026 --roll-call 125
+nebula votes house --year 2026 --format jsonl
+nebula apportionments list
+nebula apportionments get https://apportionment-public.max.gov/file.json
+nebula apportionments collect --fiscal-year 2026 --output ./data/omb/
+```
+
+`sources status` reports local configuration without making a request.
+`--check` explicitly probes each source over HTTP and reports reachability
+separately from credential availability. `config show` masks secrets.
+
+Every retrieval command accepts `--format table|json|jsonl|csv`, `--output`,
+`--overwrite`, `--quiet`, and `--verbose`. Collection output defaults to JSONL.
+When `--output` names a directory or ends in `/`, Nebula writes a
+deterministically named file there. Existing files require `--overwrite`.
+Nested CSV fields are encoded as compact JSON strings in their cells.
+Machine-readable stdout contains only records; diagnostics and interactive
+collection progress go to stderr.
+
+Exit codes are 0 for success, 2 for invalid arguments, 3 for configuration
+errors, 4 for network or missing-resource errors, 5 for parsing or data
+validation errors, 6 for partial collections, and 7 for output errors.
+Partial-collection reporting will become available with resumable collection.
+
+The OMB fiscal-year filter checks validated records after retrieval, so it
+currently downloads every listed JSON file. House year retrieval checks
+roll numbers through the Clerk index's listed maximum and skips missing
+files; checkpointing and streaming are not available yet.
+
 ## HTTP client lifecycle
 
 ```python

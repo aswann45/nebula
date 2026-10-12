@@ -6,6 +6,7 @@ to normalize external data into structured models.
 """
 
 import functools
+import re
 from typing import Any
 
 import aiometer
@@ -33,6 +34,7 @@ class HouseClerkClient(BaseClient):
     ----------
     BASE_URL : str
         Base URL for all requests to the Clerk of the House.
+
     """
 
     BASE_URL = "https://clerk.house.gov"
@@ -77,6 +79,7 @@ class HouseClerkClient(BaseClient):
         -------
         ClerkMemberInfoResponse
             Parsed and structured response including member metadata.
+
         """
         async with self._client as client:
             response: Response = await self._perform_request(
@@ -123,6 +126,7 @@ class HouseClerkClient(BaseClient):
         -------
         ClerkRollCallResponse or None
             Structured response if successful, or None if not found (404).
+
         """
         try:
             response: Response = await self._perform_request(
@@ -166,6 +170,7 @@ class HouseClerkClient(BaseClient):
         -------
         list[ClerkRollCallResponse or None]
             List of structured responses or None for missing records.
+
         """
         async with self._client as client:
             tasks = [
@@ -208,8 +213,9 @@ class HouseClerkClient(BaseClient):
 
         Raises
         ------
-        Exception
-            If the page does not contain a roll call link.
+        ParsingError
+            If the page does not contain a recognizable roll-call link.
+
         """
         async with self._client as client:
             response: Response = await self._perform_request(
@@ -219,7 +225,19 @@ class HouseClerkClient(BaseClient):
                 **kwargs,
             )
             soup = Soup(response.text, "html.parser")
-            roll_call_link = soup.find("a")
-            if not roll_call_link:
+            numbers: list[int] = []
+            numeric_labels: list[int] = []
+            for link in soup.find_all("a"):
+                href = link.get("href")
+                if isinstance(href, str):
+                    match = re.search(r"roll(\d+)\.xml", href, re.I)
+                    if match:
+                        numbers.append(int(match.group(1)))
+                        continue
+                label = link.get_text(strip=True)
+                if label.isdigit():
+                    numeric_labels.append(int(label))
+            candidates = numbers or numeric_labels
+            if not candidates:
                 raise ParsingError("Roll call link not found")
-            return int(roll_call_link.text.strip())
+            return max(candidates)

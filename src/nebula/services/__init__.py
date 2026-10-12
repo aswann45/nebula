@@ -4,6 +4,7 @@ from .apportionments import ApportionmentService
 from .committees import CommitteeService
 from .legislation import LegislationService
 from .members import MemberService
+from .source_status import SourceStatus, SourceStatusService
 from .votes import VoteService
 
 __all__ = [
@@ -11,5 +12,7 @@ __all__ = [
     "CommitteeService",
     "LegislationService",
     "MemberService",
+    "SourceStatus",
+    "SourceStatusService",
     "VoteService",
 ]

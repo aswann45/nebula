@@ -20,6 +20,9 @@ dependencies = [
     "pyyaml (>=6.0.3,<7.0.0)"
 ]
 
+[project.scripts]
+nebula = "nebula.cli.main:app"
+
 [tool.poetry]
 packages = [{include = "nebula", from = "src"}]
 
