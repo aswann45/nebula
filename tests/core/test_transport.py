@@ -1,4 +1,4 @@
-"""Regression coverage for the Phase 1 transport and source clients."""
+"""Regression coverage for the transport and source clients."""
 
 import asyncio
 import contextlib

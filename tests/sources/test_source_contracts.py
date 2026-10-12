@@ -1,9 +1,8 @@
-"""Local fixture tests for Phase 2 source models and parsers."""
+"""Local fixture tests for source models and parsers."""
 
 import asyncio
 import json
 from datetime import datetime
-from decimal import Decimal
 from pathlib import Path
 
 import httpx
@@ -45,7 +44,7 @@ from nebula.omb_apportionments.schemas import OMBSingleApportionmentResponse
 from nebula.senate_clerk.parsers import SenateMemberParser
 from nebula.senate_clerk.schemas import ClerkSenatorInfoResponse
 
-FIXTURES = Path(__file__).parent / "fixtures"
+FIXTURES = Path(__file__).parents[1] / "fixtures"
 
 
 def fixture(name: str) -> bytes:
@@ -64,30 +63,29 @@ def test_omb_real_record_and_serialization() -> None:
     assert record.schedule_data[0].cgac_account == "5066"
     assert record.schedule_data[0].cgac_agency == "096"
     assert record.schedule_data[0].begin_poa is None
-    assert record.schedule_data[0].approved_amount == Decimal("0")
+    assert record.schedule_data[0].approved_amount == 0
     assert record.footnote_data[0].footnote_number == "A1"
-    assert record.model_dump()["schedule_data"][0][
-        "approved_amount"
-    ] == Decimal("0")
+    assert record.model_dump()["schedule_data"][0]["approved_amount"] == 0
     assert "schedule_data" in record.model_dump(mode="json")
     assert "schedule_data" in record.model_dump_json()
 
 
-def test_omb_invalid_timestamp_and_precision() -> None:
-    """Reject bad timestamps and preserve decimal input exactly."""
+def test_omb_invalid_timestamp_and_fractional_amount() -> None:
+    """Reject bad timestamps and fractional monetary amounts."""
     data = json.loads(fixture("omb_apportionment.json"))
     data["ApprovalTimestamp"] = "not-a-date"
     with pytest.raises(DataValidationError):
         OMBApportionmentParser().parse(json.dumps(data).encode())
     data["ApprovalTimestamp"] = None
-    data["ScheduleData"][0]["ApprovedAmount"] = 0.1234567890123456789
-    raw = json.dumps(data).replace(
-        "0.12345678901234568", "0.1234567890123456789"
-    )
-    record = OMBApportionmentParser().parse(raw.encode())
-    assert record.schedule_data[0].approved_amount == Decimal(
-        "0.1234567890123456789"
-    )
+    data["ScheduleData"][0]["ApprovedAmount"] = 0.5
+    with pytest.raises(DataValidationError):
+        OMBApportionmentParser().parse(json.dumps(data).encode())
+    data["ScheduleData"][0]["ApprovedAmount"] = "42"
+    record = OMBApportionmentParser().parse(json.dumps(data).encode())
+    assert record.schedule_data[0].approved_amount == 42
+    data["ScheduleData"][0]["ApprovedAmount"] = 42.0
+    record = OMBApportionmentParser().parse(json.dumps(data).encode())
+    assert record.schedule_data[0].approved_amount == 42
 
 
 def test_omb_optional_fields_and_source_extras() -> None:

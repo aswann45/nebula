@@ -21,7 +21,7 @@ from nebula.congress_gov.schemas import (
 from nebula.core.exceptions import ConfigurationError, ParsingError
 from nebula.core.transport import parse_http_date
 from nebula.schemas import BaseClient
-from nebula.settings import settings
+from nebula.settings import Settings
 
 
 class CongressGovClient(BaseClient):
@@ -43,26 +43,31 @@ class CongressGovClient(BaseClient):
 
     API_VERSION = "v3"
     BASE_URL = f"https://api.congress.gov/{API_VERSION}"
-    API_KEY = settings.congress_gov_api_key
+    API_KEY: str | None = None
 
-    def __init__(self, **kwargs: Any):
+    def __init__(
+        self, *, source_settings: Settings | None = None, **kwargs: Any
+    ):
         """Initialize the Congress.gov API client.
 
         Parameters
         ----------
         **kwargs : Any
             Optional overrides including `API_KEY`.
+        source_settings : Settings, optional
+            Validated credentials to use instead of loading the environment.
 
         Raises
         ------
         ConfigurationError
-            If `API_KEY` is missing or placeholder value is used.
+            If no API key is configured.
         """
-        key = kwargs.get("API_KEY", self.API_KEY)
-        if not key or key == "changethis":
-            raise ConfigurationError(
-                "API key not found. Did you set it in the app settings?"
-            )
+        key = kwargs.get("API_KEY")
+        if key is None:
+            configured = (source_settings or Settings()).congress_gov_api_key
+            key = configured.get_secret_value() if configured else None
+        if not key:
+            raise ConfigurationError("Congress.gov API key is not configured")
         kwargs["API_KEY"] = str(key)
         super().__init__(**kwargs)
 

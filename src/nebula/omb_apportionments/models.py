@@ -1,7 +1,7 @@
 """Validated source records for OMB's published JSON documents."""
 
 from datetime import datetime
-from decimal import Decimal
+from decimal import Decimal, InvalidOperation
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
@@ -34,7 +34,7 @@ class OMBSchedule(OMBSourceModel):
     line_number: str | None = Field(None, alias="LineNumber")
     line_split: str | None = Field(None, alias="LineSplit")
     line_description: str | None = Field(None, alias="LineDescription")
-    approved_amount: Decimal | None = Field(None, alias="ApprovedAmount")
+    approved_amount: int | None = Field(None, alias="ApprovedAmount")
     footnote_number: str | None = Field(None, alias="FootnoteNumber")
 
     @field_validator(
@@ -55,6 +55,27 @@ class OMBSchedule(OMBSourceModel):
     def empty_to_none(cls, value: object) -> object:
         """Normalize blank nullable fields without changing codes."""
         return None if value == "" else value
+
+    @field_validator("approved_amount", mode="before")
+    @classmethod
+    def validate_whole_amount(cls, value: object) -> int | None:
+        """Accept exact whole amounts without truncating fractions."""
+        if value is None:
+            return None
+        if isinstance(value, bool):
+            raise ValueError("ApprovedAmount must be a whole number")
+        if isinstance(value, int):
+            return value
+        if isinstance(value, (str, Decimal)):
+            try:
+                amount = Decimal(value)
+            except InvalidOperation as exc:
+                raise ValueError(
+                    "ApprovedAmount must be a whole number"
+                ) from exc
+            if amount.is_finite() and amount == amount.to_integral_value():
+                return int(amount)
+        raise ValueError("ApprovedAmount must be a whole number")
 
 
 class OMBFootnote(OMBSourceModel):

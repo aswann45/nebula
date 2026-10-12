@@ -31,8 +31,11 @@ Transient GET failures are retried with jittered exponential backoff, and
 values omitted from messages. Missing House roll calls and OMB files keep
 their previous `None` result; other request failures raise typed errors.
 
-Congress.gov requires `API_KEY` (or `CONGRESS_GOV_API_KEY` in settings).
-For example, use `CongressGovClient(API_KEY="...")` inside an async context.
+Congress.gov reads `CONGRESS_GOV_API_KEY` from the environment or a `.env`
+file in the working directory. Environment variables take precedence. Copy
+`.env.example` to `.env` and replace the example value, or pass
+`CongressGovClient(API_KEY="...")` directly. The settings class also accepts
+injected credentials for testing.
 
 OMB collection still returns the existing response-wrapper list. Its HTML
 index links are resolved against the OMB host, deduplicated, and downloaded
@@ -40,8 +43,8 @@ with at most `max_concurrency` workers.
 
 ## Typed records and local parsing
 
-Phase 2 adds independent parsers for OMB JSON and HTML, House and Senate
-XML, Congress.gov JSON, and congressional YAML. Parsers accept bytes, so a
+Independent parsers cover OMB JSON and HTML, House and Senate XML,
+Congress.gov JSON, and congressional YAML. Parsers accept bytes, so a
 local file can be validated without an HTTP connection:
 
 ```python
@@ -60,8 +63,9 @@ response-wrapper returns. The OMB wrapper's legacy `parsed_data` property
 still uses `schedue_data`; the validated `OMBApportionment` model uses
 `schedule_data`.
 
-Source records retain additional published fields. OMB monetary amounts use
-`Decimal`, and account codes and period-of-availability values remain text.
+Source records retain additional published fields. OMB monetary amounts are
+whole-number integers; fractional amounts fail validation. Account codes and
+period-of-availability values remain text.
 The new House roll-call model preserves the original vote metadata alongside
 normalized fields. Converting a source record to a small canonical domain
 record can omit source details, so keep the source model when full fidelity

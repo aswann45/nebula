@@ -16,7 +16,7 @@ class OMBApportionmentParser:
     """Parse an OMB JSON document into a validated record."""
 
     def parse(self, content: bytes) -> OMBApportionment:
-        """Parse bytes locally, retaining decimal precision."""
+        """Parse bytes locally, validating whole monetary amounts."""
         try:
             data = json.loads(content, parse_float=Decimal)
         except (UnicodeDecodeError, json.JSONDecodeError) as exc:
