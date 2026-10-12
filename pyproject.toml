@@ -3,7 +3,7 @@ name = "nebula"
 version = "0.1.0"
 description = ""
 authors = [
-    {name = "aswann",email = "aswann@protonmail.com"}
+    {name = "aswann"}
 ]
 readme = "README.md"
 requires-python = ">=3.11"
