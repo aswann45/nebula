@@ -5,6 +5,35 @@ Congressional Legislators GitHub dataset, and OMB apportionments. The
 existing source clients and response wrappers remain available alongside
 new typed parsing and retrieval methods.
 
+## Domain API
+
+```python
+from nebula import Nebula
+
+async with Nebula() as nebula:
+    senators = await nebula.members.list(chamber="senate")
+    committees = await nebula.committees.current()
+    vote = await nebula.votes.house(2026, 125)
+    references = await nebula.apportionments.list()
+    if references:
+        record = await nebula.apportionments.get(references[0].url)
+```
+
+The facade creates source clients when first used and closes their owned
+HTTP connections on exit. `Nebula(config=HTTPConfig(...))` sets transport
+limits; `Nebula(clients={"house_clerk": client})` accepts an existing source
+client for dependency injection. Use `await nebula.get_source(name)` for
+direct access to a registered client. The source registry lists each
+adapter's supported domains through `nebula.sources.capabilities(name)`.
+
+Members also support Congress.gov lookup with `members.get(bioguide_id)`
+and bounded `members.get_many(ids)`, historical GitHub members with
+`members.historical(year)`, and the current House and Senate Clerk rosters.
+OMB's `apportionments.collect()` returns validated records using the
+existing bounded source retrieval. It omits missing files and raises on
+other source failures. Legislation has no supported retrieval operation yet;
+the current Congress.gov bill and amendment methods remain unimplemented.
+
 ## HTTP client lifecycle
 
 ```python
