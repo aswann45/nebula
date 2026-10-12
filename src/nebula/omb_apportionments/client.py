@@ -6,11 +6,13 @@ parallel using TaskGroup and HTTPX.
 """
 
 import asyncio
+from datetime import UTC, datetime
 from typing import Any
 from urllib.parse import urljoin, urlsplit
 
 from httpx import AsyncClient, Response
 
+from nebula.collection.runner import RetrievedResource
 from nebula.core.exceptions import (
     ConfigurationError,
     RequestError,
@@ -61,6 +63,21 @@ class OMBApportionmentsClient(BaseClient):
         self, url: str
     ) -> OMBApportionment | None:
         """Retrieve one JSON resource as a validated OMB model."""
+        fetched = await self.fetch_resource(url)
+        if fetched is None:
+            return None
+        return OMBApportionmentParser().parse(fetched.content)
+
+    async def get_index_content(self) -> bytes:
+        """Retrieve raw HTML for independent index discovery."""
+        async with self._client as client:
+            response = await self._perform_request(
+                client, "GET", self.BASE_URL
+            )
+            return response.content
+
+    async def fetch_resource(self, url: str) -> RetrievedResource | None:
+        """Retrieve exact JSON bytes and HTTP provenance for collection."""
         parts = urlsplit(urljoin(self.BASE_URL, url))
         if (
             parts.scheme != "https"
@@ -69,12 +86,21 @@ class OMBApportionmentsClient(BaseClient):
         ):
             raise ConfigurationError("Invalid OMB JSON resource URL")
         async with self._client as client:
-            response = await self._get_single_apportionment(
-                client, parts.geturl()
-            )
-            if response is None or response.text is None:
+            try:
+                response = await self._perform_request(
+                    client, "GET", parts.geturl()
+                )
+            except ResourceNotFoundError:
                 return None
-            return OMBApportionmentParser().parse(response.text.encode())
+            return RetrievedResource(
+                content=response.content,
+                source_url=str(response.url),
+                retrieved_at=datetime.now(UTC),
+                last_modified=parse_http_date(
+                    response.headers.get("Last-Modified")
+                ),
+                content_type=response.headers.get("Content-Type"),
+            )
 
     async def _get_apportionments_page(
         self,

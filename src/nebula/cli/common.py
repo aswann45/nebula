@@ -10,6 +10,7 @@ import typer
 from pydantic import ValidationError
 
 from nebula import Nebula
+from nebula.collection.models import CollectionResult
 from nebula.core.exceptions import (
     ConfigurationError,
     DataValidationError,
@@ -17,6 +18,7 @@ from nebula.core.exceptions import (
     RequestError,
     StorageError,
 )
+from nebula.storage.filesystem import FilesystemStorage
 
 from .output import OutputFormat, render, write_output
 
@@ -65,6 +67,61 @@ def execute(
         _display(
             content, output, output_format, overwrite, quiet, default_stem
         )
+    except typer.Exit:
+        raise
+    except (
+        ConfigurationError,
+        ValidationError,
+        RequestError,
+        ParsingError,
+        DataValidationError,
+        StorageError,
+    ) as exc:
+        _handle_error(exc, verbose)
+
+
+def execute_collection(
+    operation: Callable[[Nebula], Awaitable[CollectionResult]],
+    *,
+    output_format: OutputFormat,
+    output: str | None,
+    storage: FilesystemStorage | None,
+    export_path: str | None,
+    overwrite: bool,
+    resume: bool,
+    quiet: bool,
+    verbose: bool,
+    default_stem: str,
+) -> None:
+    """Render records or export persisted ones, preserving partial work."""
+    try:
+        result = asyncio.run(
+            _run_operation(operation, "Collecting resources", quiet)
+        )
+        if storage is not None and export_path is not None:
+            path = storage.export(
+                export_path,
+                format=output_format.value,
+                overwrite=overwrite or resume,
+            )
+            if not quiet:
+                typer.echo(f"Wrote {path}", err=True)
+        else:
+            _display(
+                render(result.records, output_format),
+                output,
+                output_format,
+                overwrite,
+                quiet,
+                default_stem,
+            )
+        if result.failed:
+            typer.echo(
+                f"{result.failed} resource(s) failed; "
+                "successful records were kept",
+                err=True,
+            )
+            raise typer.Exit(code=6)
     except typer.Exit:
         raise
     except (

@@ -29,9 +29,9 @@ adapter's supported domains through `nebula.sources.capabilities(name)`.
 Members also support Congress.gov lookup with `members.get(bioguide_id)`
 and bounded `members.get_many(ids)`, historical GitHub members with
 `members.historical(year)`, and the current House and Senate Clerk rosters.
-OMB's `apportionments.collect()` returns validated records using the
-existing bounded source retrieval. It omits missing files and raises on
-other source failures. Legislation has no supported retrieval operation yet;
+OMB's `apportionments.collect()` returns successful validated records using
+the shared bounded runner. `collect_result()` also reports failed and skipped
+resources. Legislation has no supported retrieval operation yet;
 the current Congress.gov bill and amendment methods remain unimplemented.
 
 ## Command-line interface
@@ -58,6 +58,7 @@ nebula votes house --year 2026 --format jsonl
 nebula apportionments list
 nebula apportionments get https://apportionment-public.max.gov/file.json
 nebula apportionments collect --fiscal-year 2026 --output ./data/omb/
+nebula apportionments collect --fiscal-year 2026 --output ./data/omb/ --resume
 ```
 
 `sources status` reports local configuration without making a request.
@@ -75,12 +76,56 @@ collection progress go to stderr.
 Exit codes are 0 for success, 2 for invalid arguments, 3 for configuration
 errors, 4 for network or missing-resource errors, 5 for parsing or data
 validation errors, 6 for partial collections, and 7 for output errors.
-Partial-collection reporting will become available with resumable collection.
+OMB collection writes successful records even when some resources fail, then
+returns exit code 6. Rerun with `--resume` to retry failed resources.
 
 The OMB fiscal-year filter checks validated records after retrieval, so it
-currently downloads every listed JSON file. House year retrieval checks
-roll numbers through the Clerk index's listed maximum and skips missing
-files; checkpointing and streaming are not available yet.
+currently downloads every listed JSON file. For JSON or JSONL `--output`,
+each line or object contains both `record` and `provenance`. Nebula also
+stores one JSON file per resource, a checkpoint, and collection metadata in
+a companion collection directory. `--preserve-raw` stores original response
+bytes, and `--checkpoint` can choose another checkpoint path. Resume requires
+the same collection parameters and skips completed resources. House year
+retrieval checks roll numbers through the Clerk index's listed maximum and
+skips missing files.
+
+## Resumable collection and storage
+
+```python
+from pathlib import Path
+from nebula import Nebula
+from nebula.collection.checkpoints import FileCheckpointStore
+from nebula.storage import FilesystemStorage
+
+storage = FilesystemStorage(Path("data/omb"))
+checkpoint = FileCheckpointStore(Path("data/omb/checkpoint.json"))
+async with Nebula() as nebula:
+    result = await nebula.apportionments.collect_result(
+        2026,
+        storage=storage,
+        checkpoint_store=checkpoint,
+        resume=True,
+        preserve_raw=True,
+        retain_records=False,
+    )
+print(result.summary())
+storage.export("data/omb/records.jsonl", format="jsonl", overwrite=True)
+```
+
+`CollectionRunner` accepts source-specific discovery, retrieval, and parsing
+functions. Discovery strategies cover explicit resource lists, HTML indexes,
+and cursor-based pages. An empty API page does not end discovery unless the
+source marks it complete. The runner limits active workers, records failures
+per resource, and saves checkpoint progress after each attempt. Cancellation
+leaves completed records and checkpoint state available for resume. The OMB
+adapter uses each JSON URL path as its stable resource identity, so changing
+index order does not force another download.
+
+Filesystem storage writes each parsed record atomically and can export JSON
+or JSONL without loading all stored records at once. Provenance includes the
+source URL without query parameters, retrieval time, HTTP last-modified
+when available, parser version, collection and record IDs, and a SHA-256
+hash of the raw content. Source publication timestamps are not inferred.
 
 ## HTTP client lifecycle
 

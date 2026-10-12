@@ -1,13 +1,18 @@
 """Offline command tests for the Typer interface."""
 
+import asyncio
 import json
 from pathlib import Path
 from typing import Any
 
+import httpx
 from typer.testing import CliRunner
 
+from nebula import Nebula
 from nebula.cli.main import app
+from nebula.core.config import HTTPConfig
 from nebula.core.exceptions import SourceUnavailableError
+from nebula.omb_apportionments.client import OMBApportionmentsClient
 
 
 def test_help_version_and_source_inspection() -> None:
@@ -103,20 +108,22 @@ def test_omb_collect_directory_output(
     """Write fiscal-year JSONL to a deterministic file name."""
     from nebula.cli import common
 
-    class Apportionments:
-        async def collect(self, fiscal_year: int | None) -> list[dict]:
-            return [{"fiscal_year": fiscal_year, "approved_amount": 12}]
+    fixture = Path(__file__).parents[1] / "fixtures" / "omb_apportionment.json"
 
-    class FakeNebula:
-        apportionments = Apportionments()
+    def handler(request: httpx.Request) -> httpx.Response:
+        if request.url.path == "/":
+            return httpx.Response(200, text='<a href="/one.json">one</a>')
+        return httpx.Response(200, content=fixture.read_bytes())
 
-        async def __aenter__(self) -> "FakeNebula":
-            return self
-
-        async def __aexit__(self, *args: object) -> None:
-            return None
-
-    monkeypatch.setattr(common, "create_nebula", FakeNebula)
+    http = httpx.AsyncClient(transport=httpx.MockTransport(handler))
+    client = OMBApportionmentsClient(
+        http_client=http, config=HTTPConfig(max_retries=0)
+    )
+    monkeypatch.setattr(
+        common,
+        "create_nebula",
+        lambda: Nebula(clients={"omb_apportionments": client}),
+    )
     destination = str(tmp_path / "omb") + "/"
     result = CliRunner().invoke(
         app,
@@ -124,17 +131,66 @@ def test_omb_collect_directory_output(
             "apportionments",
             "collect",
             "--fiscal-year",
-            "2026",
+            "2027",
             "--output",
             destination,
         ],
     )
     assert result.exit_code == 0
-    output = tmp_path / "omb" / "omb-apportionments-2026.jsonl"
-    assert json.loads(output.read_text()) == {
-        "fiscal_year": 2026,
-        "approved_amount": 12,
-    }
+    output = tmp_path / "omb" / "omb-apportionments-2027.jsonl"
+    assert json.loads(output.read_text())["record"]["file_id"] == 11547886
+    asyncio.run(http.aclose())
+
+
+def test_omb_cli_partial_failure_and_resume(
+    monkeypatch: Any, tmp_path: Path
+) -> None:
+    """Keep a partial JSONL export and finish it on --resume."""
+    from nebula.cli import common
+
+    fixture = Path(__file__).parents[1] / "fixtures" / "omb_apportionment.json"
+    missing = True
+    paths: list[str] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        if request.url.path == "/":
+            return httpx.Response(
+                200,
+                text='<a href="/one.json">one</a><a href="/two.json">two</a>',
+            )
+        paths.append(request.url.path)
+        if request.url.path == "/two.json" and missing:
+            return httpx.Response(404)
+        return httpx.Response(200, content=fixture.read_bytes())
+
+    http = httpx.AsyncClient(transport=httpx.MockTransport(handler))
+    client = OMBApportionmentsClient(
+        http_client=http, config=HTTPConfig(max_retries=0)
+    )
+    monkeypatch.setattr(
+        common,
+        "create_nebula",
+        lambda: Nebula(clients={"omb_apportionments": client}),
+    )
+    directory = str(tmp_path / "omb") + "/"
+    args = [
+        "apportionments",
+        "collect",
+        "--fiscal-year",
+        "2027",
+        "--output",
+        directory,
+    ]
+    first = CliRunner().invoke(app, args)
+    assert first.exit_code == 6
+    output = tmp_path / "omb" / "omb-apportionments-2027.jsonl"
+    assert len(output.read_text().splitlines()) == 1
+    missing = False
+    second = CliRunner().invoke(app, [*args, "--resume"])
+    assert second.exit_code == 0
+    assert len(output.read_text().splitlines()) == 2
+    assert paths.count("/one.json") == 1
+    asyncio.run(http.aclose())
 
 
 def test_argument_and_network_exit_codes(monkeypatch: Any) -> None:
