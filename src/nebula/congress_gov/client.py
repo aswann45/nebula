@@ -157,6 +157,8 @@ class CongressGovClient(BaseClient):
         ----------
         bioguide_ids : Sequence[str]
             List of bioguide IDs to fetch.
+        **kwargs : Any, optional
+            Accepted for compatibility; currently unused.
 
         Returns
         -------

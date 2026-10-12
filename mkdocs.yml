@@ -1,0 +1,54 @@
+site_name: Nebula
+site_description: Typed access to government and legislative sources
+repo_url: https://github.com/aswann45/nebula
+theme:
+  name: material
+  features:
+    - navigation.sections
+    - content.code.copy
+plugins:
+  - search
+  - mkdocstrings:
+      handlers:
+        python:
+          paths: [src]
+          options:
+            docstring_style: numpy
+            show_source: false
+markdown_extensions:
+  - admonition
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
+nav:
+  - Home: index.md
+  - Getting started:
+      - Installation: getting-started/installation.md
+      - Configuration: getting-started/configuration.md
+      - Quickstart: getting-started/quickstart.md
+  - User guide:
+      - Python API: user-guide/python-api.md
+      - Async usage: user-guide/async-usage.md
+      - CLI: user-guide/cli.md
+      - Collection: user-guide/collection.md
+  - Sources:
+      - Congress.gov: sources/congress-gov.md
+      - House Clerk: sources/house-clerk.md
+      - Senate Clerk: sources/senate-clerk.md
+      - GitHub Congress: sources/github-congress.md
+      - OMB apportionments: sources/omb-apportionments.md
+  - Architecture:
+      - Overview: architecture/overview.md
+      - Source adapters: architecture/source-adapters.md
+      - Parsing: architecture/parsing.md
+      - Models: architecture/models.md
+      - Collection: architecture/collection.md
+  - API reference:
+      - Clients: api/clients.md
+      - Services: api/services.md
+      - Models: api/models.md
+      - Exceptions: api/exceptions.md
+  - Development:
+      - Contributing: development/contributing.md
+      - Testing: development/testing.md
+      - Adding sources: development/adding-sources.md

@@ -1,3 +1,5 @@
+"""House Clerk roster and vote retrieval."""
+
 from .member_model import (
     ClerkData,
     CommitteeAssignments,

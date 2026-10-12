@@ -37,7 +37,13 @@ ruff = [
 dev = [
     "types-pyyaml (>=6.0.12.20260906,<7.0.0.0)",
     "types-xmltodict (>=1.0.1.20260518,<2.0.0.0)",
-    "ruff (>=0.17.0,<0.18.0)"
+    "ruff (>=0.17.0,<0.18.0)",
+    "pytest (>=8,<10)"
+]
+docs = [
+    "mkdocs-material (>=9.6,<10)",
+    "mkdocstrings[python] (>=0.29,<1)",
+    "pymdown-extensions (>=10,<12)"
 ]
 
 [tool.mypy]

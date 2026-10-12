@@ -173,6 +173,7 @@ class BaseClientError(RequestError):
     """
 
     def __init__(self, message: str, response: Response | None = None):
+        """Attach the message and optional HTTP response."""
         self.message = message
         super().__init__(self.message, response=response)
 
@@ -241,6 +242,7 @@ class BaseClient:
         USER_AGENT: str | None = None,
         TIMEOUT: float | None = None,
     ) -> None:
+        """Configure a source client and its reusable HTTP transport."""
         self.BASE_URL = BASE_URL or type(self).BASE_URL
         self.API_KEY = API_KEY if API_KEY is not None else type(self).API_KEY
         self.USER_AGENT = USER_AGENT or type(self).USER_AGENT

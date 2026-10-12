@@ -1,0 +1,35 @@
+# Python API
+
+`Nebula` exposes `members`, `committees`, `votes`, `apportionments`, and
+`legislation` services. The legislation service currently has no retrieval
+method because the source methods are not implemented. Services return
+validated source models for their supported operations.
+
+```python
+from nebula import Nebula
+
+async with Nebula() as nebula:
+    member = await nebula.members.get("B000490")
+    committees = await nebula.committees.current()
+    vote = await nebula.votes.house(2026, 125)
+    collected = await nebula.apportionments.collect_result(2026)
+    print(collected.summary())
+```
+
+`members.get` requires a Congress.gov key. `votes.house` returns `None`
+for an absent roll call; `apportionments.get` returns `None` for an absent
+JSON file. Collection results keep successful records and report per-resource
+failures. Use `collect_result()` when the failure summary matters.
+
+For direct source access, import a client from its existing package path:
+
+```python
+from nebula.omb_apportionments.client import OMBApportionmentsClient
+
+async with OMBApportionmentsClient() as client:
+    references = await client.list_apportionment_references()
+```
+
+Older response-wrapper methods remain available. Prefer typed methods such
+as `get_apportionment_model()`, `get_roll_call_vote_model()`, and
+`get_current_members()` for new code.

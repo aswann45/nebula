@@ -1,3 +1,5 @@
+"""Legacy typed dictionaries retained for source-client compatibility."""
+
 from typing import Any, TypedDict
 
 MemberInfoDict = dict[str, Any]

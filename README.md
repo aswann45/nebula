@@ -5,6 +5,10 @@ Congressional Legislators GitHub dataset, and OMB apportionments. The
 existing source clients and response wrappers remain available alongside
 new typed parsing and retrieval methods.
 
+See the [documentation](docs/index.md) for installation, configuration,
+source coverage, the Python API, CLI, collection behavior, and development
+guidance.
+
 ## Domain API
 
 ```python
@@ -159,7 +163,8 @@ file in the working directory. Environment variables take precedence. Copy
 `CongressGovClient(API_KEY="...")` directly. The settings class also accepts
 injected credentials for testing.
 
-OMB collection still returns the existing response-wrapper list. Its HTML
+The legacy OMB client collection method still returns its existing
+response-wrapper list. Its HTML
 index links are resolved against the OMB host, deduplicated, and downloaded
 with at most `max_concurrency` workers.
 
@@ -173,7 +178,9 @@ local file can be validated without an HTTP connection:
 from pathlib import Path
 from nebula.omb_apportionments.parsers import OMBApportionmentParser
 
-record = OMBApportionmentParser().parse(Path("apportionment.json").read_bytes())
+record = OMBApportionmentParser().parse(
+    Path("apportionment.json").read_bytes()
+)
 print(record.schedule_data[0].approved_amount)
 ```
 
@@ -192,3 +199,17 @@ The new House roll-call model preserves the original vote metadata alongside
 normalized fields. Converting a source record to a small canonical domain
 record can omit source details, so keep the source model when full fidelity
 matters. Public model serialization does not trigger parsing or network work.
+
+## Known gaps
+
+- Congress.gov bill and amendment retrieval methods remain unimplemented;
+  the legislation service and CLI have no retrieval operation yet.
+- The shared paginated discovery strategy is available, but no implemented
+  Congress.gov endpoint is connected to the collection runner.
+- House year vote retrieval is bounded but does not use shared checkpointing,
+  incremental storage, or resumability. Senate vote retrieval is not
+  implemented.
+- OMB fiscal-year collection downloads all indexed JSON resources before
+  filtering validated records by year.
+- Legacy response-wrapper methods remain for compatibility. Some return
+  less structured data than the newer typed methods.

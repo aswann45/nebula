@@ -716,13 +716,10 @@ class MemberItem(BaseModel):
         if self.parsed_member_info.bioguide_id is not None:
             return self.parsed_member_info.bioguide_id
 
-        elif self.parsed_predecessor_info is not None:
-            # TODO: need to fix the logic here
-            assert self.parsed_predecessor_info.bioguide_id is not None
-            return self.parsed_predecessor_info.bioguide_id
-        else:
-            assert self.parsed_member_info.bioguide_id is not None
-            return self.parsed_member_info.bioguide_id
+        predecessor = self.parsed_predecessor_info
+        if predecessor is not None and predecessor.bioguide_id is not None:
+            return predecessor.bioguide_id
+        raise AssertionError("No bioguide ID is available")
 
     chamber: str = "House"
 
