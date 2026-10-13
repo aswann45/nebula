@@ -16,6 +16,7 @@ from nebula.core.config import HTTPConfig
 from nebula.core.exceptions import DataValidationError
 from nebula.github_congress.client import GitHubCongressClient
 from nebula.house_clerk.client import HouseClerkClient
+from nebula.schemas import BaseClient
 from nebula.settings import Settings
 from nebula.sources import SourceCapabilities, SourceRegistry
 
@@ -143,7 +144,7 @@ def test_facade_closes_owned_clients_after_failure() -> None:
     """Release a lazily created transport when context work raises."""
 
     async def run() -> None:
-        client: GitHubCongressClient
+        client: BaseClient
         with pytest.raises(RuntimeError, match="failed"):
             async with Nebula() as nebula:
                 client = await nebula.get_source("github_congress")

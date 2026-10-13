@@ -96,7 +96,7 @@ class TransportTests(unittest.IsolatedAsyncioTestCase):
             second = await client.get_current_member_data()
         self.assertEqual(len(seen), 2)
         self.assertEqual(first.last_modified, second.last_modified)
-        self.assertEqual(first.last_modified.tzinfo, UTC)
+        self.assertEqual(first.last_modified.tzinfo, UTC)  # type: ignore[union-attr]
         self.assertFalse(http.is_closed)
         await http.aclose()
 
@@ -161,7 +161,7 @@ class TransportTests(unittest.IsolatedAsyncioTestCase):
         with self.assertRaises(ValidationError):
             HTTPConfig(max_concurrency=0)
         with self.assertRaises(TypeError):
-            GitHubCongressClient(random_attribute=True)
+            GitHubCongressClient(random_attribute=True)  # type: ignore[call-arg]
 
         def handler(request: httpx.Request) -> httpx.Response:
             return httpx.Response(200, text="[]")

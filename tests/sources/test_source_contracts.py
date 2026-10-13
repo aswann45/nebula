@@ -306,7 +306,7 @@ def test_congress_member_parser_validates_terms() -> None:
     }
     parser = CongressGovMemberParser()
     assert parser.parse(json.dumps(payload).encode()).bioguide_id == "B000490"
-    payload["member"]["terms"] = []
+    payload["member"]["terms"] = []  # type: ignore[index]
     with pytest.raises(DataValidationError):
         parser.parse(json.dumps(payload).encode())
 

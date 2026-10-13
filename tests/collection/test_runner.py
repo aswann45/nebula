@@ -181,7 +181,7 @@ def test_cancelled_collection_keeps_completed_checkpoint(
         task.cancel()
         with pytest.raises(asyncio.CancelledError):
             await task
-        assert checkpoint.load().completed_ids == {"a"}
+        assert checkpoint.load().completed_ids == {"a"}  # type: ignore[union-attr]
         assert storage.has_record("a")
         assert not storage.has_record("b")
 
@@ -206,7 +206,7 @@ def test_checkpoint_rejects_incompatible_request(tmp_path: Path) -> None:
             await CollectionRunner(
                 changed,
                 discovery=ExplicitDiscovery([]),
-                fetch=lambda ref: None,
+                fetch=lambda ref: None,  # type: ignore[arg-type,return-value]
                 parse=lambda raw: Record(value="unused"),
                 storage=FilesystemStorage(tmp_path / "data"),
                 checkpoint_store=checkpoint,
