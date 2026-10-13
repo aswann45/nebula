@@ -1,8 +1,7 @@
 """Async HTTP client for the Congress.gov API.
 
-Provides methods to fetch member data and (placeholder) endpoints for
-bill and amendment activity. Wraps API responses with rich metadata and
-typed models.
+Provides methods to fetch member data and bill and amendment activity.
+Wraps API responses with rich metadata and typed models.
 """
 
 import functools
@@ -13,8 +12,18 @@ from typing import Any
 import aiometer
 from httpx import AsyncClient, Response
 
+from nebula.congress_gov.legislation_models import (
+    CongressActionPage,
+    CongressAmendmentPage,
+    CongressAmendmentRequest,
+    CongressBillRequest,
+)
 from nebula.congress_gov.member_model import Member
-from nebula.congress_gov.parsers import CongressGovMemberParser
+from nebula.congress_gov.parsers import (
+    CongressActionPageParser,
+    CongressAmendmentPageParser,
+    CongressGovMemberParser,
+)
 from nebula.congress_gov.schemas import (
     CongressGovMemberResponse,
 )
@@ -84,22 +93,103 @@ class CongressGovClient(BaseClient):
             return CongressGovMemberParser().parse(response.content)
 
     async def get_bill_actions(
-        self, **kwargs: Any | None
-    ) -> None:  # -> CongressGovResponse:
-        """Fetch actions taken on a bill. [Placeholder]."""
-        raise NotImplementedError("Bill actions are not implemented")
+        self,
+        congress: int,
+        bill_type: str,
+        bill_number: int,
+        *,
+        offset: int = 0,
+        limit: int = 250,
+    ) -> CongressActionPage:
+        """Retrieve one page of actions taken on a bill."""
+        request = CongressBillRequest.model_validate(
+            dict(
+                congress=congress,
+                bill_type=bill_type,
+                bill_number=bill_number,
+                offset=offset,
+                limit=limit,
+            )
+        )
+        content = await self._legislation_content(
+            f"/bill/{request.congress}/{request.bill_type}/"
+            f"{request.bill_number}/actions",
+            request.offset,
+            request.limit,
+        )
+        return CongressActionPageParser().parse(content)
 
     async def get_bill_amendments(
-        self, **kwargs: Any | None
-    ) -> None:  # -> CongressGovResponse:
-        """Fetch amendments related to a bill. [Placeholder]."""
-        raise NotImplementedError("Bill amendments are not implemented")
+        self,
+        congress: int,
+        bill_type: str,
+        bill_number: int,
+        *,
+        offset: int = 0,
+        limit: int = 250,
+    ) -> CongressAmendmentPage:
+        """Retrieve one page of amendments related to a bill."""
+        request = CongressBillRequest.model_validate(
+            dict(
+                congress=congress,
+                bill_type=bill_type,
+                bill_number=bill_number,
+                offset=offset,
+                limit=limit,
+            )
+        )
+        content = await self._legislation_content(
+            f"/bill/{request.congress}/{request.bill_type}/"
+            f"{request.bill_number}/amendments",
+            request.offset,
+            request.limit,
+        )
+        return CongressAmendmentPageParser().parse(content)
 
     async def get_amendment_actions(
-        self, **kwargs: Any | None
-    ) -> None:  # -> CongressGovResponse:
-        """Fetch actions taken on a specific amendment. [Placeholder]."""
-        raise NotImplementedError("Amendment actions are not implemented")
+        self,
+        congress: int,
+        amendment_type: str,
+        amendment_number: int,
+        *,
+        offset: int = 0,
+        limit: int = 250,
+    ) -> CongressActionPage:
+        """Retrieve one page of actions taken on an amendment."""
+        request = CongressAmendmentRequest.model_validate(
+            dict(
+                congress=congress,
+                amendment_type=amendment_type,
+                amendment_number=amendment_number,
+                offset=offset,
+                limit=limit,
+            )
+        )
+        content = await self._legislation_content(
+            f"/amendment/{request.congress}/{request.amendment_type}/"
+            f"{request.amendment_number}/actions",
+            request.offset,
+            request.limit,
+        )
+        return CongressActionPageParser().parse(content)
+
+    async def _legislation_content(
+        self, path: str, offset: int, limit: int
+    ) -> bytes:
+        """Retrieve a JSON page using the configured API key."""
+        async with self._client as client:
+            response = await self._perform_request(
+                client,
+                "GET",
+                path,
+                params={
+                    "format": "json",
+                    "api_key": self.API_KEY,
+                    "offset": offset,
+                    "limit": limit,
+                },
+            )
+            return response.content
 
     async def _get_single_member_data(
         self, client: AsyncClient, bioguide_id: str, **kwargs: Any | None

@@ -78,7 +78,7 @@ class Nebula:
             self._congress, self._github, self._house, self._senate
         )
         self.committees = CommitteeService(self._github)
-        self.legislation = LegislationService()
+        self.legislation = LegislationService(self._congress)
         self.votes = VoteService(self._house)
         self.apportionments = ApportionmentService(self._omb)
 

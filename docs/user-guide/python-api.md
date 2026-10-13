@@ -1,9 +1,8 @@
 # Python API
 
 `Nebula` exposes `members`, `committees`, `votes`, `apportionments`, and
-`legislation` services. The legislation service currently has no retrieval
-method because the source methods are not implemented. Services return
-validated source models for their supported operations.
+`legislation` services. Services return validated source models for their
+supported operations.
 
 ```python
 from nebula import Nebula
@@ -13,8 +12,10 @@ async with Nebula() as nebula:
     committees = await nebula.committees.current()
     vote = await nebula.votes.house(2026, 125)
     house_votes = await nebula.votes.house_year_result(2026)
+    actions = await nebula.legislation.bill_actions(117, "hr", 3076)
     collected = await nebula.apportionments.collect_result(2026)
     print(house_votes.summary())
+    print(actions.actions, actions.pagination.next)
     print(collected.summary())
 ```
 

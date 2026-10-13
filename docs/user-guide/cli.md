@@ -12,6 +12,9 @@ The CLI delegates to the same domain services as the Python API.
 | `committees list`, `committees current` | Current GitHub committees |
 | `votes house --year YEAR [--roll-call N]` | House roll calls |
 | `votes collect-house --year YEAR` | Resumable House year collection |
+| `legislation bill-actions CONGRESS TYPE NUMBER` | Bill actions page |
+| `legislation bill-amendments CONGRESS TYPE NUMBER` | Bill amendments page |
+| `legislation amendment-actions CONGRESS TYPE NUMBER` | Amendment actions page |
 | `apportionments list`, `apportionments get URL` | OMB discovery and retrieval |
 | `apportionments collect [--fiscal-year YEAR]` | OMB bulk collection |
 
@@ -34,5 +37,5 @@ source bytes; `--checkpoint PATH` selects a checkpoint file.
 | 6 | Partial collection |
 | 7 | Output or storage error |
 
-There are no legislation commands yet because the underlying bill and
-amendment retrieval operations remain unimplemented.
+Legislation commands accept `--offset` and `--limit` (up to 250) to select
+one Congress.gov result page.

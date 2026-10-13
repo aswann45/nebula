@@ -76,7 +76,9 @@ class SourceRegistry:
         registry.register(
             "congress_gov",
             CongressGovClient,
-            SourceCapabilities(members=True, bulk_collection=True),
+            SourceCapabilities(
+                members=True, legislation=True, bulk_collection=True
+            ),
         )
         registry.register(
             "house_clerk",

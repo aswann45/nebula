@@ -1,0 +1,13 @@
+{
+  "amendments": [
+    {
+      "congress": 117,
+      "number": "4981",
+      "type": "SAMDT",
+      "updateDate": "2022-03-08T05:16:17Z",
+      "url": "https://api.congress.gov/v3/amendment/117/samdt/4981?format=json"
+    }
+  ],
+  "pagination": {"count": 48, "next": null},
+  "request": {"format": "json"}
+}

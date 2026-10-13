@@ -36,7 +36,10 @@ def test_member_and_committee_services_without_facade() -> None:
             raise AssertionError("unexpected source request")
 
         members = MemberService(
-            unsupported, resolve_github, unsupported, unsupported  # type: ignore[arg-type]
+            unsupported,
+            resolve_github,
+            unsupported,
+            unsupported,  # type: ignore[arg-type]
         )
         committees = CommitteeService(resolve_github)
         assert len(await members.current()) == 2

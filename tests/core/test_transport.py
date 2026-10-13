@@ -10,7 +10,6 @@ from email.utils import format_datetime
 import httpx
 from pydantic import ValidationError
 
-from nebula.congress_gov.client import CongressGovClient
 from nebula.core.config import HTTPConfig
 from nebula.core.exceptions import (
     RateLimitError,
@@ -229,9 +228,3 @@ class TransportTests(unittest.IsolatedAsyncioTestCase):
         with self.assertRaises(SourceUnavailableError):
             await client.get_apportionments_data()
         await http.aclose()
-
-    async def test_placeholder_methods_fail_explicitly(self) -> None:
-        """Keep placeholder entry points but report unsupported work."""
-        client = CongressGovClient(API_KEY="test")
-        with self.assertRaises(NotImplementedError):
-            await client.get_bill_actions()

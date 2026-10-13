@@ -7,7 +7,15 @@ from typing import Annotated
 
 import typer
 
-from . import apportionments, committees, config, members, sources, votes
+from . import (
+    apportionments,
+    committees,
+    config,
+    legislation,
+    members,
+    sources,
+    votes,
+)
 
 app = typer.Typer(
     help="Retrieve and inspect government and legislative source data.",
@@ -17,6 +25,7 @@ app = typer.Typer(
 app.add_typer(members.app, name="members")
 app.add_typer(committees.app, name="committees")
 app.add_typer(votes.app, name="votes")
+app.add_typer(legislation.app, name="legislation")
 app.add_typer(apportionments.app, name="apportionments")
 app.add_typer(sources.app, name="sources")
 app.add_typer(config.app, name="config")

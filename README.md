@@ -35,8 +35,8 @@ and bounded `members.get_many(ids)`, historical GitHub members with
 `members.historical(year)`, and the current House and Senate Clerk rosters.
 OMB's `apportionments.collect()` returns successful validated records using
 the shared bounded runner. `collect_result()` also reports failed and skipped
-resources. Legislation has no supported retrieval operation yet;
-the current Congress.gov bill and amendment methods remain unimplemented.
+resources. Congress.gov legislation methods retrieve paginated bill actions,
+bill amendments, and amendment actions.
 
 ## Command-line interface
 
@@ -61,6 +61,9 @@ nebula votes house --year 2026 --roll-call 125
 nebula votes house --year 2026 --format jsonl
 nebula votes collect-house --year 2026 --output ./data/house/
 nebula votes collect-house --year 2026 --output ./data/house/ --resume
+nebula legislation bill-actions 117 hr 3076 --format json
+nebula legislation bill-amendments 117 hr 3076 --format json
+nebula legislation amendment-actions 117 hamdt 173 --format json
 nebula apportionments list
 nebula apportionments get https://apportionment-public.max.gov/file.json
 nebula apportionments collect --fiscal-year 2026 --output ./data/omb/
@@ -204,8 +207,6 @@ matters. Public model serialization does not trigger parsing or network work.
 
 ## Known gaps
 
-- Congress.gov bill and amendment retrieval methods remain unimplemented;
-  the legislation service and CLI have no retrieval operation yet.
 - The shared paginated discovery strategy is available, but no implemented
   Congress.gov endpoint is connected to the collection runner.
 - House year vote retrieval uses shared checkpointing and incremental

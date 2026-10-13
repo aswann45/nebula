@@ -1,0 +1,13 @@
+{
+  "actions": [
+    {
+      "actionCode": "E40000",
+      "actionDate": "2022-04-06",
+      "sourceSystem": {"code": 9, "name": "Library of Congress"},
+      "text": "Became Public Law No: 117-108.",
+      "type": "President"
+    }
+  ],
+  "pagination": {"count": 74, "next": "https://api.congress.gov/v3/bill/117/hr/3076/actions?offset=1&limit=1&format=json"},
+  "request": {"format": "json"}
+}

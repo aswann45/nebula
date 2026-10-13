@@ -15,7 +15,9 @@ async with Nebula() as nebula:
     member = await nebula.members.get("B000490")
 ```
 
-Bill and amendment methods currently raise `NotImplementedError`; no
-legislation service or CLI retrieval command is exposed. A paginated
-Congress.gov collection adapter has not yet been connected to the shared
-runner.
+`CongressGovClient` also retrieves one page of bill actions, bill
+amendments, or amendment actions through typed methods. The corresponding
+`Nebula.legislation` methods return typed records and pagination metadata.
+Use `offset` and `limit` to request further pages; `limit` is at most 250.
+A paginated Congress.gov collection adapter has not yet been connected to
+the shared runner.
