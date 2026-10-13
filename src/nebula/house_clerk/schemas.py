@@ -11,13 +11,9 @@ import xmltodict
 from pydantic import Field
 
 from nebula.house_clerk.member_model import ClerkData
+from nebula.house_clerk.models import HouseRollCall
 from nebula.house_clerk.parsers import HouseMemberParser
 from nebula.schemas import APIServiceResponse
-from nebula.typings import (
-    RecordedVote,
-    RollCallDict,
-    VoteMeta,
-)
 
 
 class HouseClerkResponse(APIServiceResponse):
@@ -106,7 +102,7 @@ class ClerkRollCallResponse(HouseClerkResponse):
     year: int = Field(..., description="Legislative year")
 
     @property
-    def parsed_data(self) -> RollCallDict:
+    def parsed_data(self) -> dict[str, Any]:
         """Return full roll call vote metadata and votes.
 
         Extracts metadata from the vote header and individual recorded
@@ -114,7 +110,7 @@ class ClerkRollCallResponse(HouseClerkResponse):
 
         Returns
         -------
-        RollCallDict
+        dict
             Dictionary with `vote_meta`, `year`, and `votes` keys.
 
         """
@@ -128,7 +124,8 @@ class ClerkRollCallResponse(HouseClerkResponse):
                     "recorded-vote"
                 ]
             ]
-        return cast(RollCallDict, self._parsed_data)
+            HouseRollCall.model_validate(self._parsed_data)
+        return cast(dict[str, Any], self._parsed_data)
 
     @parsed_data.setter
     def parsed_data(self, value: Any) -> None:
@@ -138,7 +135,7 @@ class ClerkRollCallResponse(HouseClerkResponse):
         """Coerce datetime string to datetime object. Format is d-MMM-YYYY."""
         return datetime.strptime(dt, "%d-%b-%Y")
 
-    def parse_vote_meta(self) -> VoteMeta:
+    def parse_vote_meta(self) -> dict[str, Any]:
         """Extract and format metadata from a Clerk roll call vote.
 
         Parses fields such as congress number, session, question, description,
@@ -146,7 +143,7 @@ class ClerkRollCallResponse(HouseClerkResponse):
 
         Returns
         -------
-        VoteMeta
+        dict
             Structured dictionary containing vote metadata.
 
         Raises
@@ -179,7 +176,7 @@ class ClerkRollCallResponse(HouseClerkResponse):
         except KeyError as e:
             raise KeyError(f"Missing key {e} in {self.data}") from e
 
-    def parse_member_vote(self, vote_dict: dict) -> RecordedVote:
+    def parse_member_vote(self, vote_dict: dict) -> dict[str, str]:
         """Parse a single recorded vote from the Clerk data.
 
         Parameters
@@ -189,7 +186,7 @@ class ClerkRollCallResponse(HouseClerkResponse):
 
         Returns
         -------
-        RecordedVote
+        dict
             Parsed and normalized member vote.
 
         Raises

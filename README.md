@@ -214,5 +214,3 @@ matters. Public model serialization does not trigger parsing or network work.
   filtering validated records by year.
 - Legacy response-wrapper methods remain for compatibility. Some return
   less structured data than the newer typed methods.
-- Internal code still uses some legacy `nebula.typings` dictionaries instead
-  of validated Pydantic models.

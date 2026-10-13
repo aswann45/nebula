@@ -12,9 +12,11 @@ import us
 import yaml
 from pydantic import BaseModel, Field
 
-from nebula.github_congress.models import GitHubCommittee
+from nebula.github_congress.models import (
+    GitHubCommittee,
+    GitHubCurrentMemberSummary,
+)
 from nebula.schemas import APIServiceResponse
-from nebula.typings import MemberInfoDict
 
 
 class HistoricalMemberIDData(BaseModel):
@@ -290,18 +292,18 @@ class GitHubCongressResponse(APIServiceResponse):
 class GHCCurrentMemberResponse(GitHubCongressResponse):
     """Parser for currently serving Members from GitHub YAML.
 
-    Transforms raw YAML records into flattened `MemberInfoDict` structures,
+    Transforms raw YAML records into flattened member dictionaries,
     applying leadership and term logic.
 
     Attributes
     ----------
-    parsed_data : list[MemberInfoDict]
+    parsed_data : list[dict[str, Any]]
         Processed member data.
 
     """
 
     @property
-    def parsed_data(self) -> list[MemberInfoDict]:
+    def parsed_data(self) -> list[dict[str, Any]]:
         """Return parsed current member data from GitHub YAML.
 
         Parses the raw YAML response using `parse_member_data` and returns
@@ -310,27 +312,29 @@ class GHCCurrentMemberResponse(GitHubCongressResponse):
 
         Returns
         -------
-        list[MemberInfoDict]
+        list[dict[str, Any]]
             Structured data for currently serving Members.
 
         """
         if self._parsed_data is None:
             self._parsed_data = self.parse_member_data()
-        return cast(list[MemberInfoDict], self._parsed_data)
+        return cast(list[dict[str, Any]], self._parsed_data)
 
     @parsed_data.setter
-    def parsed_data(self, value: list[MemberInfoDict]) -> None:
+    def parsed_data(self, value: list[dict[str, Any]]) -> None:
         """Set the parsed member data manually.
 
         Parameters
         ----------
-        value : list[MemberInfoDict]
+        value : list[dict[str, Any]]
             Pre-parsed list of member dictionaries.
 
         """
         self._parsed_data = value
 
-    def parse_single_member(self, member_dict: dict) -> MemberInfoDict | None:
+    def parse_single_member(
+        self, member_dict: dict[str, Any]
+    ) -> dict[str, Any] | None:
         """Extract relevant fields from a single YAML member record.
 
         Parameters
@@ -340,7 +344,7 @@ class GHCCurrentMemberResponse(GitHubCongressResponse):
 
         Returns
         -------
-        MemberInfoDict or None
+        dict or None
             Structured member info or None if no valid data found.
 
         """
@@ -383,14 +387,16 @@ class GHCCurrentMemberResponse(GitHubCongressResponse):
         if len(res) == 0:
             return None
 
-        return res
+        return GitHubCurrentMemberSummary.model_validate(res).model_dump(
+            mode="json", exclude_unset=True
+        )
 
-    def parse_member_data(self) -> list[MemberInfoDict]:
+    def parse_member_data(self) -> list[dict[str, Any]]:
         """Transform the full YAML dataset into structured member records.
 
         Returns
         -------
-        list[MemberInfoDict]
+        list[dict[str, Any]]
             Parsed current member entries.
 
         """
@@ -460,12 +466,12 @@ class GHCHistoricalMemberResponse(GitHubCongressResponse):
         return cast(list[HistoricalMemberData], self._parsed_data)
 
     @parsed_data.setter
-    def parsed_data(self, value: list[MemberInfoDict]) -> None:
+    def parsed_data(self, value: list[HistoricalMemberData]) -> None:
         """Set parsed historical member data manually.
 
         Parameters
         ----------
-        value : list[MemberInfoDict]
+        value : list[HistoricalMemberData]
             Pre-parsed list of member records (must match expected shape).
 
         """

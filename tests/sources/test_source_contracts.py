@@ -14,7 +14,10 @@ from nebula.congress_gov.parsers import CongressGovMemberParser
 from nebula.congress_gov.schemas import CongressGovMemberResponse
 from nebula.core.exceptions import DataValidationError, ParsingError
 from nebula.github_congress.client import GitHubCongressClient
-from nebula.github_congress.models import GitHubHistoricalMembersRequest
+from nebula.github_congress.models import (
+    GitHubCurrentMemberSummary,
+    GitHubHistoricalMembersRequest,
+)
 from nebula.github_congress.parsers import (
     GitHubCommitteeParser,
     GitHubHistoricalMemberParser,
@@ -43,6 +46,7 @@ from nebula.omb_apportionments.parsers import (
 from nebula.omb_apportionments.schemas import OMBSingleApportionmentResponse
 from nebula.senate_clerk.parsers import SenateMemberParser
 from nebula.senate_clerk.schemas import ClerkSenatorInfoResponse
+from nebula.typings import MemberInfoDict, RollCallRequestParams
 
 FIXTURES = Path(__file__).parents[1] / "fixtures"
 
@@ -136,6 +140,66 @@ def test_legacy_wrapper_serialization_does_not_parse() -> None:
         assert "parsed_data" not in response.model_dump()
         assert "parsed_data" not in response.model_dump_json()
         assert response.source_metadata("test").source == "test"
+
+
+def test_legacy_dict_names_and_validated_wrapper_data() -> None:
+    """Preserve legacy imports and dictionary returns after validation."""
+    request: RollCallRequestParams = {"year": 2025, "roll_call_number": 1}
+    member: MemberInfoDict = {"bioguide_id": "C000127"}
+    assert request["year"] == 2025
+    assert member["bioguide_id"] == "C000127"
+
+    response = GHCCurrentMemberResponse(
+        url="https://example.com/legislators-current.yaml",
+        text=fixture("github_members.yaml").decode(),
+    )
+    first = response.parsed_data[0]
+    assert isinstance(first, dict)
+    assert isinstance(first["terms"][0]["start"], str)
+    assert GitHubCurrentMemberSummary.model_validate(first).bioguide_id == (
+        "C000127"
+    )
+    with pytest.raises(ValidationError):
+        response.parse_single_member(
+            {"terms": first["terms"], "id": {"bioguide": ""}}
+        )
+
+    vote = ClerkRollCallResponse(
+        url="https://clerk.house.gov/evs/2025/roll001.xml",
+        text=fixture("house_roll.xml").decode(),
+        year=2025,
+    )
+    assert isinstance(vote.parsed_data, dict)
+    assert isinstance(vote.parsed_data["votes"][0], dict)
+
+
+def test_house_batch_accepts_dicts_and_models() -> None:
+    """Validate legacy mappings while accepting Pydantic requests."""
+
+    async def run() -> None:
+        http = httpx.AsyncClient(
+            transport=httpx.MockTransport(
+                lambda request: httpx.Response(
+                    200, content=fixture("house_roll.xml")
+                )
+            )
+        )
+        client = HouseClerkClient(http_client=http)
+        responses = await client.get_roll_call_vote_data(
+            [
+                {"year": 2025, "roll_call_number": 1},
+                HouseRollCallRequest(year=2025, roll_call_number=2),
+            ]
+        )
+        assert len(responses) == 2
+        assert all(response is not None for response in responses)
+        with pytest.raises(ValidationError):
+            await client.get_roll_call_vote_data(
+                [{"year": 2025, "roll_call_number": 0}]
+            )
+        await http.aclose()
+
+    asyncio.run(run())
 
 
 def test_congressional_fixture_parsers() -> None:

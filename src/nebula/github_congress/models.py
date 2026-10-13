@@ -44,6 +44,21 @@ class GitHubMember(GitHubSourceModel):
     terms: list[GitHubMemberTerm] = Field(min_length=1)
 
 
+class GitHubLeadershipRole(BaseModel):
+    """Current leadership title in the legacy flattened member view."""
+
+    role_name: str | None = None
+    level: str = "leadership"
+
+
+class GitHubCurrentMemberSummary(BaseModel):
+    """Validate the flattened data returned by the legacy wrapper."""
+
+    bioguide_id: str = Field(min_length=1)
+    terms: list[GitHubMemberTerm] | None = None
+    leadership_roles: list[GitHubLeadershipRole] | None = None
+
+
 class GitHubSubcommittee(GitHubSourceModel):
     """A published subcommittee entry."""
 

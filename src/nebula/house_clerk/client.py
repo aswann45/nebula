@@ -6,6 +6,7 @@ to normalize external data into structured models.
 """
 
 import functools
+from collections.abc import Mapping, Sequence
 from datetime import UTC, datetime
 from typing import Any
 
@@ -16,7 +17,6 @@ from nebula.collection.runner import RetrievedResource
 from nebula.core.exceptions import ParsingError, ResourceNotFoundError
 from nebula.core.transport import parse_http_date
 from nebula.schemas import BaseClient
-from nebula.typings import RollCallRequestParams
 
 from .member_model import ClerkData
 from .models import HouseRollCall, HouseRollCallRequest
@@ -189,7 +189,9 @@ class HouseClerkClient(BaseClient):
 
     async def get_roll_call_vote_data(
         self,
-        roll_call_requests: list[RollCallRequestParams],
+        roll_call_requests: Sequence[
+            HouseRollCallRequest | Mapping[str, str | int]
+        ],
     ) -> list[ClerkRollCallResponse | None]:
         """Fetch multiple roll call vote records concurrently.
 
@@ -198,7 +200,7 @@ class HouseClerkClient(BaseClient):
 
         Parameters
         ----------
-        roll_call_requests : list[RollCallRequestParams]
+        roll_call_requests : sequence of HouseRollCallRequest or mappings
             List of roll call vote parameters, each with `year` and
             `roll_call_number` keys.
 
@@ -208,15 +210,19 @@ class HouseClerkClient(BaseClient):
             List of structured responses or None for missing records.
 
         """
+        requests = [
+            HouseRollCallRequest.model_validate(req)
+            for req in roll_call_requests
+        ]
         async with self._client as client:
             tasks = [
                 functools.partial(
                     self._get_roll_call_vote,
                     client,
-                    year=req["year"],
-                    roll_call_number=req["roll_call_number"],
+                    year=req.year,
+                    roll_call_number=req.roll_call_number,
                 )
-                for req in roll_call_requests
+                for req in requests
             ]
             results = await aiometer.run_all(
                 tasks,
