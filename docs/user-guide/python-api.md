@@ -13,9 +13,11 @@ async with Nebula() as nebula:
     vote = await nebula.votes.house(2026, 125)
     house_votes = await nebula.votes.house_year_result(2026)
     actions = await nebula.legislation.bill_actions(117, "hr", 3076)
+    bills = await nebula.legislation.collect_bills_result(119, "hr")
     collected = await nebula.apportionments.collect_result(2026)
     print(house_votes.summary())
     print(actions.actions, actions.pagination.next)
+    print(bills.summary())
     print(collected.summary())
 ```
 

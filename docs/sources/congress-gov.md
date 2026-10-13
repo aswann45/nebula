@@ -19,5 +19,9 @@ async with Nebula() as nebula:
 amendments, or amendment actions through typed methods. The corresponding
 `Nebula.legislation` methods return typed records and pagination metadata.
 Use `offset` and `limit` to request further pages; `limit` is at most 250.
-A paginated Congress.gov collection adapter has not yet been connected to
-the shared runner.
+`get_bill_page()` and `get_bill_model()` provide typed bill list and detail
+records. `Nebula.legislation.collect_bills_result(congress, bill_type)`
+follows the API's explicit next-page URL, then retrieves and validates each
+bill detail through the shared bounded runner. Stable bill identities use
+Congress, type, and number, so a changed list order does not invalidate
+checkpoints. Collection supports storage, resume, and raw response retention.

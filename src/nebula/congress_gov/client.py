@@ -7,27 +7,38 @@ Wraps API responses with rich metadata and typed models.
 import functools
 import json
 from collections.abc import Mapping, Sequence
+from datetime import UTC, datetime
 from typing import Any
 
 import aiometer
 from httpx import AsyncClient, Response
 
+from nebula.collection.runner import RetrievedResource
 from nebula.congress_gov.legislation_models import (
     CongressActionPage,
     CongressAmendmentPage,
     CongressAmendmentRequest,
+    CongressBill,
+    CongressBillListRequest,
+    CongressBillPage,
     CongressBillRequest,
 )
 from nebula.congress_gov.member_model import Member
 from nebula.congress_gov.parsers import (
     CongressActionPageParser,
     CongressAmendmentPageParser,
+    CongressBillPageParser,
+    CongressBillParser,
     CongressGovMemberParser,
 )
 from nebula.congress_gov.schemas import (
     CongressGovMemberResponse,
 )
-from nebula.core.exceptions import ConfigurationError, ParsingError
+from nebula.core.exceptions import (
+    ConfigurationError,
+    ParsingError,
+    ResourceNotFoundError,
+)
 from nebula.core.transport import parse_http_date
 from nebula.schemas import BaseClient
 from nebula.settings import Settings
@@ -190,6 +201,78 @@ class CongressGovClient(BaseClient):
                 },
             )
             return response.content
+
+    def bill_url(self, congress: int, bill_type: str, bill_number: int) -> str:
+        """Build a validated Congress.gov bill detail URL."""
+        request = CongressBillRequest.model_validate(
+            dict(
+                congress=congress,
+                bill_type=bill_type,
+                bill_number=bill_number,
+            )
+        )
+        return (
+            f"{self.BASE_URL}/bill/{request.congress}/"
+            f"{request.bill_type}/{request.bill_number}"
+        )
+
+    async def get_bill_page(
+        self,
+        congress: int,
+        bill_type: str,
+        *,
+        offset: int = 0,
+        limit: int = 250,
+    ) -> CongressBillPage:
+        """Retrieve one page of bills for a Congress and bill type."""
+        request = CongressBillListRequest.model_validate(
+            dict(
+                congress=congress,
+                bill_type=bill_type,
+                offset=offset,
+                limit=limit,
+            )
+        )
+        content = await self._legislation_content(
+            f"/bill/{request.congress}/{request.bill_type}",
+            request.offset,
+            request.limit,
+        )
+        return CongressBillPageParser().parse(content)
+
+    async def get_bill_model(
+        self, congress: int, bill_type: str, bill_number: int
+    ) -> CongressBill | None:
+        """Retrieve one bill detail as a validated source model."""
+        fetched = await self.fetch_bill_resource(
+            congress, bill_type, bill_number
+        )
+        return CongressBillParser().parse(fetched.content) if fetched else None
+
+    async def fetch_bill_resource(
+        self, congress: int, bill_type: str, bill_number: int
+    ) -> RetrievedResource | None:
+        """Retrieve exact bill JSON bytes and HTTP provenance."""
+        url = self.bill_url(congress, bill_type, bill_number)
+        async with self._client as client:
+            try:
+                response = await self._perform_request(
+                    client,
+                    "GET",
+                    url,
+                    params={"format": "json", "api_key": self.API_KEY},
+                )
+            except ResourceNotFoundError:
+                return None
+            return RetrievedResource(
+                content=response.content,
+                source_url=str(response.url),
+                retrieved_at=datetime.now(UTC),
+                last_modified=parse_http_date(
+                    response.headers.get("Last-Modified")
+                ),
+                content_type=response.headers.get("Content-Type"),
+            )
 
     async def _get_single_member_data(
         self, client: AsyncClient, bioguide_id: str, **kwargs: Any | None

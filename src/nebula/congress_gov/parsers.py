@@ -6,7 +6,13 @@ from pydantic import ValidationError
 
 from nebula.core.exceptions import DataValidationError, ParsingError
 
-from .legislation_models import CongressActionPage, CongressAmendmentPage
+from .legislation_models import (
+    CongressActionPage,
+    CongressAmendmentPage,
+    CongressBill,
+    CongressBillDetail,
+    CongressBillPage,
+)
 from .member_model import Member, MemberResponseModel
 
 
@@ -44,6 +50,34 @@ class CongressAmendmentPageParser:
         except ValidationError as exc:
             raise DataValidationError(
                 "Congress.gov amendments failed validation"
+            ) from exc
+
+
+class CongressBillPageParser:
+    """Validate one page of bill references."""
+
+    def parse(self, content: bytes) -> CongressBillPage:
+        """Return typed bill references and pagination."""
+        try:
+            return CongressBillPage.model_validate(_json_object(content))
+        except ValidationError as exc:
+            raise DataValidationError(
+                "Congress.gov bill list failed validation"
+            ) from exc
+
+
+class CongressBillParser:
+    """Validate one full bill detail response."""
+
+    def parse(self, content: bytes) -> CongressBill:
+        """Return a typed bill while retaining published extra fields."""
+        try:
+            return CongressBillDetail.model_validate(
+                _json_object(content)
+            ).bill
+        except ValidationError as exc:
+            raise DataValidationError(
+                "Congress.gov bill failed validation"
             ) from exc
 
 

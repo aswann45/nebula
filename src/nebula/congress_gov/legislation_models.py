@@ -2,6 +2,7 @@
 
 from datetime import date, datetime, time
 from typing import Literal
+from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
@@ -22,6 +23,24 @@ class CongressPagination(CongressSourceModel):
 
     count: int = Field(ge=0)
     next: str | None = None
+
+    @field_validator("next")
+    @classmethod
+    def remove_key_from_next(cls, value: str | None) -> str | None:
+        """Keep continuation state without exposing an API key."""
+        if value is None:
+            return None
+        parts = urlsplit(value)
+        query = urlencode(
+            [
+                (key, item)
+                for key, item in parse_qsl(parts.query, keep_blank_values=True)
+                if key.lower() != "api_key"
+            ]
+        )
+        return urlunsplit(
+            (parts.scheme, parts.netloc, parts.path, query, parts.fragment)
+        )
 
 
 class CongressAction(CongressSourceModel):
@@ -59,12 +78,34 @@ class CongressAmendmentPage(BaseModel):
     pagination: CongressPagination
 
 
-class CongressBillRequest(BaseModel):
-    """Validated bill identity and page bounds."""
+class CongressBill(CongressSourceModel):
+    """Bill record with published source-specific fields preserved."""
+
+    congress: int = Field(ge=1)
+    type: str = Field(min_length=1)
+    number: str = Field(min_length=1)
+    title: str
+    introduced_date: date | None = Field(default=None, alias="introducedDate")
+
+
+class CongressBillPage(BaseModel):
+    """One page of bill references from Congress.gov."""
+
+    bills: list[CongressBill]
+    pagination: CongressPagination
+
+
+class CongressBillDetail(BaseModel):
+    """Envelope for a full bill detail response."""
+
+    bill: CongressBill
+
+
+class CongressBillListRequest(BaseModel):
+    """Validated bill list identity and page bounds."""
 
     congress: int = Field(ge=1)
     bill_type: BillType
-    bill_number: int = Field(gt=0)
     offset: int = Field(default=0, ge=0)
     limit: int = Field(default=250, ge=1, le=250)
 
@@ -73,6 +114,12 @@ class CongressBillRequest(BaseModel):
     def lowercase_bill_type(cls, value: object) -> object:
         """Accept common uppercase bill type spelling."""
         return value.lower() if isinstance(value, str) else value
+
+
+class CongressBillRequest(CongressBillListRequest):
+    """Validated bill identity and page bounds."""
+
+    bill_number: int = Field(gt=0)
 
 
 class CongressAmendmentRequest(BaseModel):

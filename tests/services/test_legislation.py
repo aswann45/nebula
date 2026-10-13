@@ -38,6 +38,10 @@ def test_legislation_parsers_validate_source_pages() -> None:
     assert amendments.amendments[0].type == "SAMDT"
     with pytest.raises(DataValidationError):
         CongressActionPageParser().parse(b'{"actions": [{}]}')
+    payload = json.loads((FIXTURES / "congress_actions.json").read_text())
+    payload["pagination"]["next"] += "&api_key=private-key"
+    safe_page = CongressActionPageParser().parse(json.dumps(payload).encode())
+    assert "private-key" not in (safe_page.pagination.next or "")
 
 
 def test_legislation_client_and_service_routes() -> None:

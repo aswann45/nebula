@@ -1,14 +1,19 @@
 # Collection and resume
 
-House votes and OMB apportionments use the shared collection runner.
-The House service discovers roll IDs from the Clerk's paginated listing;
-OMB discovers JSON links from its HTML index. Both download with bounded
-workers, validate records, and report partial failures.
+House votes, Congress.gov bills, and OMB apportionments use the shared
+collection runner. The House service discovers roll IDs from the Clerk's
+paginated listing; OMB discovers JSON links from its HTML index. All three
+download with bounded workers, validate records, and report partial failures.
+
+Congress.gov bill collection follows the API's continuation URL and fetches
+full bill records after discovery. It requires `CONGRESS_GOV_API_KEY` and a
+Congress number and bill type (for example, `119 hr`).
 
 ```bash
 nebula apportionments collect --fiscal-year 2026 --output ./data/omb/
 nebula apportionments collect --fiscal-year 2026 --output ./data/omb/ --resume
 nebula votes collect-house --year 2026 --output ./data/house/ --resume
+nebula legislation collect-bills 119 hr --output ./data/bills/ --resume
 ```
 
 JSON or JSONL output creates a companion directory containing one validated

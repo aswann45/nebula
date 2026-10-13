@@ -15,6 +15,8 @@ The CLI delegates to the same domain services as the Python API.
 | `legislation bill-actions CONGRESS TYPE NUMBER` | Bill actions page |
 | `legislation bill-amendments CONGRESS TYPE NUMBER` | Bill amendments page |
 | `legislation amendment-actions CONGRESS TYPE NUMBER` | Amendment actions page |
+| `legislation bill CONGRESS TYPE NUMBER` | Full Congress.gov bill |
+| `legislation collect-bills CONGRESS TYPE` | Resumable bill collection |
 | `apportionments list`, `apportionments get URL` | OMB discovery and retrieval |
 | `apportionments collect [--fiscal-year YEAR]` | OMB bulk collection |
 
@@ -23,7 +25,8 @@ Retrieval commands accept `--format table|json|jsonl|csv`, `--output`,
 automation. Nested CSV values are encoded as compact JSON in a cell.
 Progress and diagnostics go to stderr, leaving structured stdout clean.
 
-For persistent House or OMB collection, use JSON or JSONL with `--output`.
+For persistent House, Congress.gov bill, or OMB collection, use JSON or
+JSONL with `--output`.
 `--resume` retries failures using a checkpoint; `--preserve-raw` stores
 source bytes; `--checkpoint PATH` selects a checkpoint file.
 

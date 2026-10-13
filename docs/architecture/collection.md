@@ -10,8 +10,9 @@ Discovery strategies cover explicit resource lists, an HTML index, and
 cursor-based pages. Paginated discovery follows the source's explicit
 continuation signal; an empty page alone does not signal completion.
 The OMB service uses the HTML strategy. House votes use the Clerk's
-paginated listing to build explicit resource references. No Congress.gov
-paginated endpoint is connected yet.
+paginated listing to build explicit resource references. Congress.gov bill
+collection follows the API's explicit next-page URL through
+`PaginatedDiscovery`, including an empty page when it has a continuation.
 
 Checkpoints contain completed, filtered, and failed resource IDs plus a
 configuration fingerprint. Filesystem storage writes each record atomically

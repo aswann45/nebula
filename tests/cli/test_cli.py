@@ -10,6 +10,7 @@ from typer.testing import CliRunner
 
 from nebula import Nebula
 from nebula.cli.main import app
+from nebula.congress_gov.client import CongressGovClient
 from nebula.core.config import HTTPConfig
 from nebula.core.exceptions import SourceUnavailableError
 from nebula.house_clerk.client import HouseClerkClient
@@ -231,6 +232,71 @@ def test_house_collect_directory_output(
     output = tmp_path / "house" / "house-votes-2026.jsonl"
     assert json.loads(output.read_text())["provenance"]["record_id"] == (
         "2026/3"
+    )
+    asyncio.run(http.aclose())
+
+
+def test_congress_bill_collect_directory_output(
+    monkeypatch: Any, tmp_path: Path
+) -> None:
+    """Export a paginated Congress.gov bill collection as JSONL."""
+    from nebula.cli import common
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        if request.url.path == "/v3/bill/119/hr":
+            return httpx.Response(
+                200,
+                json={
+                    "bills": [
+                        {
+                            "congress": 119,
+                            "type": "HR",
+                            "number": "134",
+                            "title": "A bill",
+                        }
+                    ],
+                    "pagination": {"count": 1, "next": None},
+                },
+            )
+        return httpx.Response(
+            200,
+            json={
+                "bill": {
+                    "congress": 119,
+                    "type": "HR",
+                    "number": "134",
+                    "title": "A bill",
+                }
+            },
+        )
+
+    http = httpx.AsyncClient(transport=httpx.MockTransport(handler))
+    client = CongressGovClient(
+        API_KEY="test-key",
+        http_client=http,
+        config=HTTPConfig(max_retries=0),
+    )
+    monkeypatch.setattr(
+        common,
+        "create_nebula",
+        lambda: Nebula(clients={"congress_gov": client}),
+    )
+    destination = str(tmp_path / "bills") + "/"
+    result = CliRunner().invoke(
+        app,
+        [
+            "legislation",
+            "collect-bills",
+            "119",
+            "hr",
+            "--output",
+            destination,
+        ],
+    )
+    assert result.exit_code == 0
+    output = tmp_path / "bills" / "congress-bills-119-hr.jsonl"
+    assert json.loads(output.read_text())["provenance"]["record_id"] == (
+        "119/hr/134"
     )
     asyncio.run(http.aclose())
 
