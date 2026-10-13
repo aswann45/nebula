@@ -12,7 +12,9 @@ async with Nebula() as nebula:
     vote = await nebula.votes.house(2026, 125)
 ```
 
-`nebula.votes.house_year(year)` checks roll numbers through the Clerk's
-listed maximum, skips missing XML files, and bounds concurrent requests.
+`nebula.votes.house_year(year)` follows the Clerk's paginated vote listing
+for that year, requests only listed roll numbers, skips missing XML files,
+and bounds concurrent requests. The archive's `index.asp` page is not
+available. Listing discovery supports voting years from 1935 onward.
 It does not yet create checkpoints or incremental record files. The
 House roll-call parser also accepts local XML bytes.

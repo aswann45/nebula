@@ -6,11 +6,9 @@ to normalize external data into structured models.
 """
 
 import functools
-import re
 from typing import Any
 
 import aiometer
-from bs4 import BeautifulSoup as Soup
 from httpx import AsyncClient, Response
 
 from nebula.core.exceptions import ParsingError, ResourceNotFoundError
@@ -20,7 +18,11 @@ from nebula.typings import RollCallRequestParams
 
 from .member_model import ClerkData
 from .models import HouseRollCall, HouseRollCallRequest
-from .parsers import HouseMemberParser, HouseRollCallParser
+from .parsers import (
+    HouseMemberParser,
+    HouseRollCallParser,
+    HouseVoteListingParser,
+)
 from .schemas import ClerkMemberInfoResponse, ClerkRollCallResponse
 
 
@@ -189,22 +191,54 @@ class HouseClerkClient(BaseClient):
             )
         return results
 
+    async def list_roll_call_numbers(self, year: int | str) -> list[int]:
+        """List roll numbers published for a House voting year.
+
+        The Clerk's vote search provides paginated results; the old
+        ``/evs/{year}/index.asp`` archive index is unavailable.
+        """
+        voting_year = int(year)
+        if voting_year < 1935:
+            raise ValueError("House vote listing requires year 1935 or later")
+        congress = (voting_year - 1789) // 2 + 1
+        session = "1st" if voting_year % 2 else "2nd"
+        parser = HouseVoteListingParser()
+        numbers: list[int] = []
+        seen: set[int] = set()
+        async with self._client as client:
+            for page in range(1, 1001):
+                response = await self._perform_request(
+                    client,
+                    "GET",
+                    "/Votes/MemberVotes",
+                    params={
+                        "CongressNum": congress,
+                        "Session": session,
+                        "Page": page,
+                    },
+                )
+                current, has_next = parser.parse(response.content, voting_year)
+                for number in current:
+                    if number not in seen:
+                        numbers.append(number)
+                        seen.add(number)
+                if not has_next:
+                    return numbers
+        raise ParsingError("House vote listing exceeded 1000 pages")
+
     async def get_max_roll_call_number(
         self,
         year: int | str,
         **kwargs: Any | None,
     ) -> int:
-        """Scrape the maximum roll call number from the EVS index page.
-
-        Loads the Clerk's roll call vote index page for a given year and
-        extracts the highest roll call number present in the HTML.
+        """Return the highest roll number in the Clerk's vote listing.
 
         Parameters
         ----------
         year : int or str
             Year to inspect (e.g., 2024).
         **kwargs : Any, optional
-            Optional request arguments for HTTP.
+            Accepted for compatibility.
 
         Returns
         -------
@@ -217,27 +251,7 @@ class HouseClerkClient(BaseClient):
             If the page does not contain a recognizable roll-call link.
 
         """
-        async with self._client as client:
-            response: Response = await self._perform_request(
-                client,
-                "GET",
-                f"/evs/{year}/index.asp",
-                **kwargs,
-            )
-            soup = Soup(response.text, "html.parser")
-            numbers: list[int] = []
-            numeric_labels: list[int] = []
-            for link in soup.find_all("a"):
-                href = link.get("href")
-                if isinstance(href, str):
-                    match = re.search(r"roll(\d+)\.xml", href, re.I)
-                    if match:
-                        numbers.append(int(match.group(1)))
-                        continue
-                label = link.get_text(strip=True)
-                if label.isdigit():
-                    numeric_labels.append(int(label))
-            candidates = numbers or numeric_labels
-            if not candidates:
-                raise ParsingError("Roll call link not found")
-            return max(candidates)
+        numbers = await self.list_roll_call_numbers(year)
+        if not numbers:
+            raise ParsingError("House vote listing has no roll calls")
+        return max(numbers)

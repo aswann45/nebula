@@ -90,8 +90,8 @@ stores one JSON file per resource, a checkpoint, and collection metadata in
 a companion collection directory. `--preserve-raw` stores original response
 bytes, and `--checkpoint` can choose another checkpoint path. Resume requires
 the same collection parameters and skips completed resources. House year
-retrieval checks roll numbers through the Clerk index's listed maximum and
-skips missing files.
+retrieval follows the Clerk's paginated vote listing and downloads only
+listed roll-call XML files, skipping any that disappear.
 
 ## Resumable collection and storage
 
@@ -206,10 +206,12 @@ matters. Public model serialization does not trigger parsing or network work.
   the legislation service and CLI have no retrieval operation yet.
 - The shared paginated discovery strategy is available, but no implemented
   Congress.gov endpoint is connected to the collection runner.
-- House year vote retrieval is bounded but does not use shared checkpointing,
-  incremental storage, or resumability. Senate vote retrieval is not
-  implemented.
+- House year vote retrieval follows the Clerk's paginated listing but does
+  not use shared checkpointing, incremental storage, or resumability. Senate
+  vote retrieval is not implemented.
 - OMB fiscal-year collection downloads all indexed JSON resources before
   filtering validated records by year.
 - Legacy response-wrapper methods remain for compatibility. Some return
   less structured data than the newer typed methods.
+- Internal code still uses some legacy `nebula.typings` dictionaries instead
+  of validated Pydantic models.

@@ -1,15 +1,56 @@
-"""Offline XML parsers for House Clerk rosters and votes."""
+"""Offline parsers for House Clerk rosters and votes."""
 
+import re
 from datetime import datetime
 from typing import Any
+from urllib.parse import urlsplit
 
 import xmltodict
+from bs4 import BeautifulSoup
 from pydantic import ValidationError
 
 from nebula.core.exceptions import DataValidationError, ParsingError
 
 from .member_model import ClerkData
 from .models import HouseRollCall
+
+
+class HouseVoteListingParser:
+    """Read published roll numbers and continuation from a Clerk page."""
+
+    def parse(self, content: bytes, year: int) -> tuple[list[int], bool]:
+        """Parse one page of the Clerk's vote search results."""
+        soup = BeautifulSoup(content, "html.parser")
+        numbers: list[int] = []
+        prefix = f"/Votes/{year}"
+        for link in soup.select('a[aria-label^="Roll number"]'):
+            href = link.get("href")
+            label = link.get_text(strip=True)
+            if not isinstance(href, str) or not label.isdigit():
+                raise ParsingError("Invalid House vote listing entry")
+            path = urlsplit(href).path
+            if path != f"{prefix}{label}":
+                raise ParsingError("House vote listing year or roll mismatch")
+            numbers.append(int(label))
+        if not numbers:
+            if "No Votes Found" in soup.get_text(" ", strip=True):
+                return [], False
+            raise ParsingError("House vote listing has no roll calls")
+        info = soup.select_one(".pagination_info")
+        match = (
+            re.fullmatch(
+                r"\s*\d+\s*-\s*(\d+)\s+of\s+(\d+)\s+Results\s*",
+                info.get_text(" ", strip=True),
+            )
+            if info is not None
+            else None
+        )
+        if match is None:
+            raise ParsingError("House vote listing has no result count")
+        end, total = map(int, match.groups())
+        if end > total:
+            raise ParsingError("Invalid House vote listing count")
+        return numbers, end < total
 
 
 def _xml(content: bytes) -> dict[str, Any]:

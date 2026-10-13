@@ -9,7 +9,7 @@ from nebula.typings import RollCallRequestParams
 
 
 class VoteService:
-    """Retrieve individual House votes and discover the current maximum."""
+    """Retrieve individual House votes and published voting years."""
 
     def __init__(
         self, house: Callable[[], Awaitable[HouseClerkClient]]
@@ -30,17 +30,15 @@ class VoteService:
         return await client.get_max_roll_call_number(year)
 
     async def house_year(self, year: int | str) -> list[HouseRollCall]:
-        """Retrieve known House rolls for a year with bounded concurrency.
+        """Retrieve listed House rolls with bounded concurrency.
 
         Missing roll files are skipped. The source client's batch method
-        limits active requests, and every number through the listed maximum
-        is checked so gaps do not stop retrieval.
+        limits active requests.
         """
         client = await self._house()
-        maximum = await client.get_max_roll_call_number(year)
+        numbers = await client.list_roll_call_numbers(year)
         requests: list[RollCallRequestParams] = [
-            {"year": year, "roll_call_number": number}
-            for number in range(1, maximum + 1)
+            {"year": year, "roll_call_number": number} for number in numbers
         ]
         responses = await client.get_roll_call_vote_data(requests)
         parser = HouseRollCallParser()
