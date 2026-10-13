@@ -59,6 +59,8 @@ nebula members senate-current
 nebula committees current
 nebula votes house --year 2026 --roll-call 125
 nebula votes house --year 2026 --format jsonl
+nebula votes collect-house --year 2026 --output ./data/house/
+nebula votes collect-house --year 2026 --output ./data/house/ --resume
 nebula apportionments list
 nebula apportionments get https://apportionment-public.max.gov/file.json
 nebula apportionments collect --fiscal-year 2026 --output ./data/omb/
@@ -206,9 +208,8 @@ matters. Public model serialization does not trigger parsing or network work.
   the legislation service and CLI have no retrieval operation yet.
 - The shared paginated discovery strategy is available, but no implemented
   Congress.gov endpoint is connected to the collection runner.
-- House year vote retrieval follows the Clerk's paginated listing but does
-  not use shared checkpointing, incremental storage, or resumability. Senate
-  vote retrieval is not implemented.
+- House year vote retrieval uses shared checkpointing and incremental
+  storage. Senate vote retrieval is not implemented.
 - OMB fiscal-year collection downloads all indexed JSON resources before
   filtering validated records by year.
 - Legacy response-wrapper methods remain for compatibility. Some return

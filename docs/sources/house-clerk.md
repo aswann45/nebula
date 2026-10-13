@@ -16,5 +16,6 @@ async with Nebula() as nebula:
 for that year, requests only listed roll numbers, skips missing XML files,
 and bounds concurrent requests. The archive's `index.asp` page is not
 available. Listing discovery supports voting years from 1935 onward.
-It does not yet create checkpoints or incremental record files. The
-House roll-call parser also accepts local XML bytes.
+`house_year_result()` also accepts storage and checkpoint options for
+resumable collection and reports failed roll files. The House roll-call
+parser accepts local XML bytes.

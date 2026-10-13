@@ -1,12 +1,14 @@
 # Collection and resume
 
-OMB collection is the current integration with the shared collection
-runner. It discovers JSON links from the HTML index, downloads with bounded
-workers, validates each record, and reports partial failures.
+House votes and OMB apportionments use the shared collection runner.
+The House service discovers roll IDs from the Clerk's paginated listing;
+OMB discovers JSON links from its HTML index. Both download with bounded
+workers, validate records, and report partial failures.
 
 ```bash
 nebula apportionments collect --fiscal-year 2026 --output ./data/omb/
 nebula apportionments collect --fiscal-year 2026 --output ./data/omb/ --resume
+nebula votes collect-house --year 2026 --output ./data/house/ --resume
 ```
 
 JSON or JSONL output creates a companion directory containing one validated
@@ -43,5 +45,4 @@ Cancellation preserves completed record files and checkpoint progress.
 `retain_records=False` avoids keeping all parsed models in memory.
 
 The fiscal-year filter currently runs after retrieval, so all indexed OMB
-JSON files are downloaded. House year votes use a separate bounded source
-method and do not yet use the shared checkpoint runner.
+JSON files are downloaded.

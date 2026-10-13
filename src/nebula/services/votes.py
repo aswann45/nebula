@@ -2,10 +2,18 @@
 
 from collections.abc import Awaitable, Callable
 
+from nebula.collection import (
+    CollectionRequest,
+    CollectionResult,
+    CollectionRunner,
+    ExplicitDiscovery,
+    ResourceReference,
+)
+from nebula.collection.checkpoints import FileCheckpointStore
 from nebula.house_clerk.client import HouseClerkClient
 from nebula.house_clerk.models import HouseRollCall
 from nebula.house_clerk.parsers import HouseRollCallParser
-from nebula.typings import RollCallRequestParams
+from nebula.storage.base import RecordStorage
 
 
 class VoteService:
@@ -30,20 +38,55 @@ class VoteService:
         return await client.get_max_roll_call_number(year)
 
     async def house_year(self, year: int | str) -> list[HouseRollCall]:
-        """Retrieve listed House rolls with bounded concurrency.
-
-        Missing roll files are skipped. The source client's batch method
-        limits active requests.
-        """
-        client = await self._house()
-        numbers = await client.list_roll_call_numbers(year)
-        requests: list[RollCallRequestParams] = [
-            {"year": year, "roll_call_number": number} for number in numbers
-        ]
-        responses = await client.get_roll_call_vote_data(requests)
-        parser = HouseRollCallParser()
+        """Return successful House votes from a bounded collection."""
+        result = await self.house_year_result(year)
         return [
-            parser.parse(response.text.encode())
-            for response in responses
-            if response is not None and response.text is not None
+            record
+            for record in result.records
+            if isinstance(record, HouseRollCall)
         ]
+
+    async def house_year_result(
+        self,
+        year: int | str,
+        *,
+        storage: RecordStorage | None = None,
+        checkpoint_store: FileCheckpointStore | None = None,
+        resume: bool = False,
+        overwrite: bool = False,
+        preserve_raw: bool = False,
+        retain_records: bool = True,
+        progress: Callable[[int, int], None] | None = None,
+    ) -> CollectionResult:
+        """Collect listed House votes with optional persistence and resume."""
+        client = await self._house()
+        voting_year = int(year)
+        references = [
+            ResourceReference(
+                resource_id=f"{voting_year}/{number}",
+                url=client.roll_call_url(voting_year, number),
+            )
+            for number in await client.list_roll_call_numbers(voting_year)
+        ]
+        request = CollectionRequest(
+            source="house_clerk",
+            collection_id=f"house-votes-{voting_year}",
+            parameters={"year": voting_year},
+            max_concurrency=client.config.max_concurrency,
+            resume=resume,
+            overwrite=overwrite,
+            preserve_raw=preserve_raw,
+            retain_records=retain_records,
+        )
+        runner = CollectionRunner(
+            request,
+            discovery=ExplicitDiscovery(references),
+            fetch=lambda ref: client.fetch_roll_call_resource(
+                voting_year, int(ref.resource_id.rsplit("/", 1)[-1])
+            ),
+            parse=HouseRollCallParser().parse,
+            storage=storage,
+            checkpoint_store=checkpoint_store,
+            progress=progress,
+        )
+        return await runner.run()

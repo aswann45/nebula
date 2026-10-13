@@ -12,14 +12,17 @@ async with Nebula() as nebula:
     member = await nebula.members.get("B000490")
     committees = await nebula.committees.current()
     vote = await nebula.votes.house(2026, 125)
+    house_votes = await nebula.votes.house_year_result(2026)
     collected = await nebula.apportionments.collect_result(2026)
+    print(house_votes.summary())
     print(collected.summary())
 ```
 
 `members.get` requires a Congress.gov key. `votes.house` returns `None`
 for an absent roll call; `apportionments.get` returns `None` for an absent
 JSON file. Collection results keep successful records and report per-resource
-failures. Use `collect_result()` when the failure summary matters.
+failures. Use `votes.house_year_result()` or
+`apportionments.collect_result()` when the failure summary matters.
 
 For direct source access, import a client from its existing package path:
 

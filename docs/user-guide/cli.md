@@ -11,6 +11,7 @@ The CLI delegates to the same domain services as the Python API.
 | `members house-current`, `members senate-current` | Clerk rosters |
 | `committees list`, `committees current` | Current GitHub committees |
 | `votes house --year YEAR [--roll-call N]` | House roll calls |
+| `votes collect-house --year YEAR` | Resumable House year collection |
 | `apportionments list`, `apportionments get URL` | OMB discovery and retrieval |
 | `apportionments collect [--fiscal-year YEAR]` | OMB bulk collection |
 
@@ -19,7 +20,7 @@ Retrieval commands accept `--format table|json|jsonl|csv`, `--output`,
 automation. Nested CSV values are encoded as compact JSON in a cell.
 Progress and diagnostics go to stderr, leaving structured stdout clean.
 
-For persistent OMB collection, use JSON or JSONL with `--output`.
+For persistent House or OMB collection, use JSON or JSONL with `--output`.
 `--resume` retries failures using a checkpoint; `--preserve-raw` stores
 source bytes; `--checkpoint PATH` selects a checkpoint file.
 

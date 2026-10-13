@@ -6,11 +6,13 @@ to normalize external data into structured models.
 """
 
 import functools
+from datetime import UTC, datetime
 from typing import Any
 
 import aiometer
 from httpx import AsyncClient, Response
 
+from nebula.collection.runner import RetrievedResource
 from nebula.core.exceptions import ParsingError, ResourceNotFoundError
 from nebula.core.transport import parse_http_date
 from nebula.schemas import BaseClient
@@ -63,6 +65,38 @@ class HouseClerkClient(BaseClient):
             if response is None or response.text is None:
                 return None
             return HouseRollCallParser().parse(response.text.encode())
+
+    def roll_call_url(
+        self, year: int | str, roll_call_number: int | str
+    ) -> str:
+        """Build the published XML URL for a validated roll-call ID."""
+        request = HouseRollCallRequest(
+            year=year, roll_call_number=roll_call_number
+        )
+        return (
+            f"{self.BASE_URL}/evs/{request.year}/"
+            f"roll{request.roll_call_number:03d}.xml"
+        )
+
+    async def fetch_roll_call_resource(
+        self, year: int | str, roll_call_number: int | str
+    ) -> RetrievedResource | None:
+        """Retrieve exact roll-call XML bytes and HTTP provenance."""
+        url = self.roll_call_url(year, roll_call_number)
+        async with self._client as client:
+            try:
+                response = await self._perform_request(client, "GET", url)
+            except ResourceNotFoundError:
+                return None
+            return RetrievedResource(
+                content=response.content,
+                source_url=str(response.url),
+                retrieved_at=datetime.now(UTC),
+                last_modified=parse_http_date(
+                    response.headers.get("Last-Modified")
+                ),
+                content_type=response.headers.get("Content-Type"),
+            )
 
     async def get_current_member_data(
         self, **kwargs: Any | None
@@ -134,7 +168,7 @@ class HouseClerkClient(BaseClient):
             response: Response = await self._perform_request(
                 client,
                 "GET",
-                f"/evs/{year}/roll{int(roll_call_number):03d}.xml",
+                self.roll_call_url(year, roll_call_number),
                 **kwargs,
             )
             return ClerkRollCallResponse(

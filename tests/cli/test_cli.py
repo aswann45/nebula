@@ -12,6 +12,7 @@ from nebula import Nebula
 from nebula.cli.main import app
 from nebula.core.config import HTTPConfig
 from nebula.core.exceptions import SourceUnavailableError
+from nebula.house_clerk.client import HouseClerkClient
 from nebula.omb_apportionments.client import OMBApportionmentsClient
 
 
@@ -190,6 +191,47 @@ def test_omb_cli_partial_failure_and_resume(
     assert second.exit_code == 0
     assert len(output.read_text().splitlines()) == 2
     assert paths.count("/one.json") == 1
+    asyncio.run(http.aclose())
+
+
+def test_house_collect_directory_output(
+    monkeypatch: Any, tmp_path: Path
+) -> None:
+    """Write a House voting year as provenance-bearing JSONL."""
+    from nebula.cli import common
+
+    fixture = Path(__file__).parents[1] / "fixtures" / "house_roll.xml"
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        if request.url.path == "/Votes/MemberVotes":
+            return httpx.Response(
+                200,
+                text='<div class="pagination_info">'
+                "1 - 1 of 1 Results</div>"
+                '<a aria-label="Roll number, 3" '
+                'href="/Votes/20263">3</a>',
+            )
+        return httpx.Response(200, content=fixture.read_bytes())
+
+    http = httpx.AsyncClient(transport=httpx.MockTransport(handler))
+    client = HouseClerkClient(
+        http_client=http, config=HTTPConfig(max_retries=0)
+    )
+    monkeypatch.setattr(
+        common,
+        "create_nebula",
+        lambda: Nebula(clients={"house_clerk": client}),
+    )
+    destination = str(tmp_path / "house") + "/"
+    result = CliRunner().invoke(
+        app,
+        ["votes", "collect-house", "--year", "2026", "--output", destination],
+    )
+    assert result.exit_code == 0
+    output = tmp_path / "house" / "house-votes-2026.jsonl"
+    assert json.loads(output.read_text())["provenance"]["record_id"] == (
+        "2026/3"
+    )
     asyncio.run(http.aclose())
 
 
